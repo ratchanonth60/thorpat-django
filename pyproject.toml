@@ -1,0 +1,148 @@
+[build-system]
+requires = ["setuptools>=61.0"] # หรือ Poetry/PDM ถ้าใช้
+build-backend = "setuptools.build_meta"
+backend-path = ["."] # สำหรับ setuptools
+
+[project]
+name = "thorpat-django"
+version = "0.1.0"
+description = "A Django project named thorpat."
+authors = [
+    { name = "ratchanonth", email = "ratchanonth60@gmail.com" },
+]
+readme = "README.md" #
+requires-python = ">=3.13"
+license = { text = "MIT" } # หรือ license อื่นๆ
+# keywords = ["django", "web", "app"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Framework :: Django",
+    "Topic :: Internet :: WWW/HTTP",
+]
+
+dependencies = [
+    "django", # อ้างอิงจาก Django 3.2 ใน settings และ migration Django 5.2. ควรเลือกเวอร์ชันที่สอดคล้องกัน
+    "psycopg2-binary", #
+    "psycopg[pool]", #
+]
+
+[project.optional-dependencies]
+dev = [
+    "ipython", #
+    "black",
+    "isort",
+    "flake8",
+    "mypy",
+    "mypy-django-plugin",
+    "pytest",
+    "pytest-django",
+    "pytest-cov", # สำหรับ coverage
+    # "flake8-pyproject", # ถ้าต้องการให้ flake8 อ่านจาก pyproject.toml โดยตรง (อาจไม่จำเป็นถ้า flake8 version ใหม่รองรับ)
+]
+
+[project.urls]
+# Homepage = "https://yourprojecturl.com/"
+# Repository = "https://github.com/yourusername/thorpat-django/"
+
+# --- Tool Configurations ---
+
+[tool.setuptools.packages.find]
+where = ["src"] # บอกว่า source code อยู่ใน src
+include = ["thorpat*"]
+namespaces = false
+
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39', 'py310'] # ระบุเวอร์ชัน Python ที่รองรับ
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  # Django migrations
+  | migrations
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 120
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+skip_glob = ["*/migrations/*", "venv/*", "env/*", ".venv/*"]
+known_django = "django"
+sections = "FUTURE,STDLIB,DJANGO,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
+
+[tool.flake8]
+max-line-length = 120
+extend-ignore = "E203, E501, W503" # E203: whitespace before ':', E501: line too long (black handles), W503: line break before binary operator
+exclude = [
+    ".git",
+    "__pycache__",
+    "docs",
+    "build",
+    "dist",
+    "venv",
+    ".venv",
+    "env",
+    "*/migrations/*",
+    "manage.py", #
+    # "src/thorpat/settings/base.py", # # F403 อาจจะต้อง ignore ถ้ามีการใช้ from .base import *
+]
+# per-file-ignores = [
+#    "src/thorpat/settings/__init__.py:F401,F403", #
+# ]
+
+[tool.mypy]
+python_version = "3.13" # หรือเวอร์ชันที่คุณใช้เป็นหลัก
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+follow_imports = "silent" # หรือ normal, skip, error
+
+# Django specific settings for Mypy
+plugins = ["mypy_django_plugin.main"]
+
+[tool.django-stubs] # Plugin settings for mypy_django_plugin
+django_settings_module = "thorpat.settings" #
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "thorpat.settings" #
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+# Add test paths if they are not in the default locations
+# testpaths = [
+#     "src/thorpat/apps/users/tests",
+# ]
+addopts = "--cov=src/thorpat --cov-report=html --cov-report=term-missing -ra -q" # Example options for coverage and test reporting
+
+[tool.coverage.run]
+source = ["src/thorpat"]
+branch = true
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+    "src/thorpat/wsgi.py", #
+    "src/thorpat/asgi.py", #
+    "src/manage.py", #
+    "src/thorpat/settings/*", #
+    "src/thorpat/__init__.py", #
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 80 # Optional: ตั้ง % coverage ขั้นต่ำ
