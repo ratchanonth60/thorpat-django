@@ -3,8 +3,10 @@ from ninja.errors import HttpError
 
 from thorpat.rest_api.exception_handlers import http_exception_handler
 
-from .v1 import users
+from .auth import JWTAuth
+from .v1 import auth, users
 
-app = NinjaAPI(title="Thorpat API", version="1.0.0", csrf=True)
+app = NinjaAPI(title="Thorpat API", version="1.0.0", csrf=True, auth=JWTAuth)
 app.add_router("/v1/users/", users.router)
+app.add_router("/v1/auth/", auth.router)
 app.add_exception_handler(HttpError, http_exception_handler)
