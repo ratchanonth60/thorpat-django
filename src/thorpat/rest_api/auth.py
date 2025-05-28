@@ -17,7 +17,7 @@ class JWTAuth(HttpBearer):
         self, request: HttpRequest, token: str
     ) -> Optional[User]:  # Be more specific with return type
         decoded_payload = decode_token(token)
-        if decoded_payload.get("token_type") != "access" or not decoded_payload:
+        if not decoded_payload or decoded_payload.get("token_type", "") != "access":
             log.error("Invalid token type or empty payload")
             raise AuthenticationError(message="Invalid token")
 
