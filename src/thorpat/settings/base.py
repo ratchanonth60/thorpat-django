@@ -11,13 +11,12 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 import os
-import secrets
 from datetime import timedelta
 from pathlib import Path
 
 from ninja.throttling import AnonRateThrottle, AuthRateThrottle
 
-from thorpat import APPS, APPS_BASE
+from thorpat import APPS, APPS_BASE, APPS_THIRD_PARTY
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,7 +36,7 @@ AUTH_USER_MODEL = "users.User"
 
 
 # Application definition
-INSTALLED_APPS = APPS_BASE + APPS
+INSTALLED_APPS = APPS_BASE + APPS + APPS_THIRD_PARTY
 
 
 MIDDLEWARE = [
@@ -55,7 +54,7 @@ ROOT_URLCONF = "thorpat.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -153,3 +152,18 @@ NINJA_SETTINGS = {
         AuthRateThrottle("100/s"),
     ],
 }
+
+EMAIL_BACKEND = os.environ.get(
+    "DJANGO_EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+)  # For development
+EMAIL_HOST = os.environ.get("MAIL_HOST", "localhost")
+EMAIL_PORT = int(os.environ.get("MAIL_PORT", 25))
+EMAIL_USE_TLS = os.environ.get("MAIL_STARTTLS", 1)
+EMAIL_HOST_USER = os.environ.get("MAIL_USERNAME", "")
+EMAIL_HOST_PASSWORD = os.environ.get("MAIL_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.environ.get("MAIL_FROM", "webmaster@localhost")
+
+SITE_BASE_URL = os.environ.get("DJANGO_SITE_BASE_URL", "http://localhost:8000")
+FRONTEND_URL = os.environ.get(
+    "FRONTEND_URL", "http://localhost:8000"
+)  # Default fallback

@@ -1,10 +1,17 @@
+from django.core.paginator import Paginator as CorePaginator
+from django.http import HttpRequest
+from django.shortcuts import get_object_or_404
 from ninja import Router
+from ninja.errors import HttpError
 from ninja.params.functions import Query
 
 from thorpat.apps.users.models import User
 from thorpat.rest_api.schemas.base_schemas import BaseResponse, PaginatedDataBase
-from thorpat.rest_api.schemas.users import UserFilterSchema, UserSchema
-from django.core.paginator import Paginator as CorePaginator
+from thorpat.rest_api.schemas.users import (
+    UserFilterSchema,
+    UserSchema,
+    UserUpdateSchema,
+)
 
 router = Router(tags=["users"])
 
@@ -57,3 +64,53 @@ def get_users_manual_pagination(
         # data=paginated_data_object # ส่ง object ที่ validate แล้ว
         data=paginated_data_for_schema,  # ส่ง dict ตรงๆ ก็ได้ Ninja/Pydantic จะ validate เอง
     )
+
+
+@router.get("/me/", response=BaseResponse[UserSchema])
+def get_current_user(request: HttpRequest):
+    """
+    Get the profile of the currently authenticated user.
+    """
+    return BaseResponse(success=True, data=UserSchema.from_orm(request.user))
+
+
+@router.put("/me/", response=BaseResponse[UserSchema])
+def update_current_user(request: HttpRequest, payload: UserUpdateSchema):
+    """
+    Update the profile of the currently authenticated user.
+    """
+
+    user = request.user  # User instance จาก JWTAuth
+    updated = False
+    update_data = payload.dict(exclude_unset=True)
+
+    for attr, value in update_data.items():
+        if (
+            hasattr(user, attr) and value is not None
+        ):  # ตรวจสอบว่ามี attribute และ value ไม่ใช่ None
+            setattr(user, attr, value)
+            updated = True
+
+    if updated:
+        try:
+            user.full_clean(exclude=["password"])  # type: ignore[call-arg]
+            user.save()
+        except Exception as e:  # DjangoValidationError
+            raise HttpError(400, str(e))
+
+    return BaseResponse(
+        success=True,
+        message="Profile updated successfully.",
+        data=UserSchema.from_orm(user),
+    )
+
+
+@router.get("/{user_id}/", response=BaseResponse[UserSchema])
+def get_user_by_id(request: HttpRequest, user_id: int):
+    """
+    Retrieve a specific user by ID.
+    Requires staff privileges.
+    """
+
+    user = get_object_or_404(User, id=user_id)
+    return BaseResponse(success=True, data=UserSchema.from_orm(user))

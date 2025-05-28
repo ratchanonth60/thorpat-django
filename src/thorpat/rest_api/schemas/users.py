@@ -1,5 +1,5 @@
 from typing import Optional
-from ninja import Field, ModelSchema, FilterSchema
+from ninja import Field, ModelSchema, FilterSchema, Schema
 
 from thorpat.apps.users.models import User
 
@@ -15,6 +15,14 @@ class UserSchema(ModelSchema):
             "groups",
             "user_permissions",
         )
+
+
+class UserUpdateSchema(Schema):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    # email: Optional[str] = None # การเปลี่ยน email ควรระมัดระวัง อาจจะต้องมีการ verify ใหม่
+    # ไม่ควรอนุญาตให้อัปเดต username หรือ password ผ่าน schema นี้โดยตรง
+    # password ควรเปลี่ยนผ่าน endpoint เฉพาะ
 
 
 class UserFilterSchema(FilterSchema):

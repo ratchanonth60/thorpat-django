@@ -5,3 +5,7 @@ ipython
 django-ninja
 PyJWT 
 cryptography 
+django-countries
+django-phonenumber-field
+phonenumberslite
+djangorestframework
