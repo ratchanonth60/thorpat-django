@@ -1,7 +1,7 @@
 django
 psycopg2-binary
 psycopg[pool]
-ipytho
+ipython
 django-ninja
 PyJWT 
 cryptography 

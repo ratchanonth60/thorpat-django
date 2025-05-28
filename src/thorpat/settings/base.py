@@ -10,13 +10,14 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
-from datetime import timedelta
 import os
+import secrets
+from datetime import timedelta
 from pathlib import Path
 
-from django.utils.text import secrets
+from ninja.throttling import AnonRateThrottle, AuthRateThrottle
 
-from thorpat import APPS_BASE, APPS
+from thorpat import APPS, APPS_BASE
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -136,9 +137,19 @@ STATIC_URL = "/static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-JWT_SECRET_KEY = os.environ.get("DJANGO_JWT_SECRET_KEY", secrets.token_urlsafe(32))
+JWT_SECRET_KEY = os.environ.get("DJANGO_JWT_SECRET_KEY", SECRET_KEY)
 JWT_ALGORITHM = "HS256"
 JWT_ACCESS_TOKEN_LIFETIME = timedelta(minutes=60)  # Example: Access token lifetime
 JWT_REFRESH_TOKEN_LIFETIME = timedelta(
     days=1
 )  # Example: Refresh token lifetime (if you implement refresh tokens)
+
+NINJA_SETTINGS = {
+    "title": "Thorpat API",
+    "version": "1.0.0",
+    "csrf": True,
+    "throttle": [
+        AnonRateThrottle("10/s"),
+        AuthRateThrottle("100/s"),
+    ],
+}

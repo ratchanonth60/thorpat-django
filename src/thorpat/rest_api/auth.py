@@ -1,36 +1,45 @@
-from typing import Any, Optional
+import logging
+from typing import Optional
 
 from django.http import HttpRequest
-from ninja.errors import HttpError
+from ninja.errors import AuthenticationError, HttpError
 from ninja.security import HttpBearer
 
 from thorpat.apps.users.models import User
 
 from .utils import decode_token
 
+log = logging.getLogger(__name__)
+
 
 class JWTAuth(HttpBearer):
-    def authenticate(self, request: HttpRequest, token: str) -> Optional[Any]:
+    def authenticate(
+        self, request: HttpRequest, token: str
+    ) -> Optional[User]:  # Be more specific with return type
         decoded_payload = decode_token(token)
-        if not decoded_payload:
-            return None  # Or raise an exception like HttpError(401, "Invalid token")
+        if decoded_payload.get("token_type") != "access" or not decoded_payload:
+            log.error("Invalid token type or empty payload")
+            raise AuthenticationError(message="Invalid token")
 
-        # Ensure it's an access token if you differentiate
-        if decoded_payload.get("token_type") != "access":
-            # Optionally raise an error if it's not an access token
-            # from ninja.errors import HttpError
-            raise HttpError(401, "Invalid token type")
+        user_id_from_token = decoded_payload.get("user_id")
+        if user_id_from_token is None:
+            # Optionally, raise an error or log this, as a valid token should have a user_id
+            return None
 
         try:
-            user = User.objects.get(id=decoded_payload.get("user_id"))
-            # You can attach more info from the token to the request if needed
-            # request.auth_payload = decoded_payload
-            return (
-                user  # Return the user object for Django Ninja to populate request.auth
-            )
-        except User.DoesNotExist:  # type: ignore[no-untyped-except]
-            raise HttpError(401, "User not found")
-        except (
-            Exception
-        ):  # Broad exception for other potential issues during user retrieval
-            return None
+            # Ensure user_id_from_token is an int if your User model's PK is an int
+            # This check might be overly cautious if your JWT creation guarantees an int,
+            # but it satisfies MyPy.
+            if not isinstance(user_id_from_token, int):
+                # You could attempt conversion `int(user_id_from_token)`
+                # or simply reject if type is not as expected.
+                raise AuthenticationError(message="Invalid user ID format in token")
+
+            user = User.objects.get(id=user_id_from_token)
+            return user
+        except User.DoesNotExist:
+            raise HttpError(404, "User not found")
+        except ValueError:  # If int conversion failed, or other value errors
+            raise HttpError(400, "Invalid user ID in token")
+        except Exception as e:  # Catching broader exceptions can be logged
+            raise Exception(f"An error occurred during authentication: {str(e)}")

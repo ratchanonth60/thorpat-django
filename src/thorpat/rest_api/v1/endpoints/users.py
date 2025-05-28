@@ -1,10 +1,10 @@
 from ninja import Router
-from ninja.errors import HttpError
 from ninja.params.functions import Query
 
 from thorpat.apps.users.models import User
 from thorpat.rest_api.schemas.base_schemas import BaseResponse, PaginatedDataBase
 from thorpat.rest_api.schemas.users import UserFilterSchema, UserSchema
+from django.core.paginator import Paginator as CorePaginator
 
 router = Router(tags=["users"])
 
@@ -27,16 +27,7 @@ def get_users_manual_pagination(
     # --- Pagination ---
     # หมายเหตุ: Paginator ที่ถูกต้องควร import จาก from django.core.paginator import Paginator
     # ถ้าคุณใช้ from django.contrib.admin.options import Paginator อาจมีพฤติกรรมไม่ตรงตามที่คาดหวังสำหรับ API ทั่วไป
-    try:
-        from django.core.paginator import Paginator as CorePaginator
-
-        django_paginator = CorePaginator(queryset, per_page)
-    except (
-        ImportError
-    ):  # Fallback in case the provided import was intentional for some reason
-        from django.contrib.admin.options import Paginator as AdminPaginator
-
-        django_paginator = AdminPaginator(queryset, per_page)
+    django_paginator = CorePaginator(queryset, per_page)
 
     page_obj = django_paginator.get_page(page)
 
@@ -66,9 +57,3 @@ def get_users_manual_pagination(
         # data=paginated_data_object # ส่ง object ที่ validate แล้ว
         data=paginated_data_for_schema,  # ส่ง dict ตรงๆ ก็ได้ Ninja/Pydantic จะ validate เอง
     )
-
-
-@router.get("/error")
-def some_operation(request):
-    if True:
-        raise HttpError(503, "Service Unavailable. Please retry later.")
