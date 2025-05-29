@@ -122,24 +122,19 @@ django_settings_module = "thorpat.settings" #
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "thorpat.settings" #
-python_files = ["tests.py", "test_*.py", "*_tests.py"]
-# Add test paths if they are not in the default locations
-# testpaths = [
-#     "src/thorpat/apps/users/tests",
-# ]
-addopts = "--reuse-db -n auto --disable-pytest-warnings" # Example options for coverage and test reporting
+python_files = ["tests.py", "test_*.py", "*_tests.py"] #
+# ตรวจสอบให้แน่ใจว่า --cov-report term หรือ term-missing อยู่
+addopts = "--cov . --reuse-db -n auto --disable-pytest-warnings" #
 
 [tool.coverage.run]
-source = ["src/thorpat"]
-branch = true
-omit = [
-    "*/migrations/*",
-    "*/tests/*",
+source = ["thorpat"] #
+branch = true #
+omit = [ #
+    "*/migrations/*", #
     "src/thorpat/wsgi.py", #
     "src/thorpat/asgi.py", #
     "src/manage.py", #
     "src/thorpat/settings/*", #
     "src/thorpat/__init__.py", #
+  "*/__init__.py", #
 ]
-
-

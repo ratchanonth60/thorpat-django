@@ -18,3 +18,4 @@ pytest-django
 pytest-xdist
 factory-boy
 debugpy
+pytest-cov

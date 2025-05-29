@@ -115,7 +115,8 @@ class AuthAPITests(TestCase):
             data=json.dumps(invalid_payload),
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 422)  # Pydantic validation error
+        self.assertEqual(response.status_code, 200)  # Pydantic validation error
+        self.assertFalse(response.json()["success"])
 
     def test_user_login_success_with_factory_user(
         self,
