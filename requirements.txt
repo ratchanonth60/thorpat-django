@@ -9,3 +9,7 @@ django-countries
 django-phonenumber-field
 phonenumberslite
 djangorestframework
+sentry-sdk[django]
+colorlog
+django-typer
+django-prometheus

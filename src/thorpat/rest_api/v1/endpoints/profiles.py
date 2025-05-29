@@ -1,19 +1,19 @@
 from typing import List
-from ninja import Router
-from django.shortcuts import get_object_or_404
+
 from django.http import HttpRequest
+from django.shortcuts import get_object_or_404
+from ninja import Router
+from ninja.errors import HttpError
 
 from thorpat.apps.profiles.models import Address
-from thorpat.rest_api.schemas.profiles import (
-    AddressSchema,
-    AddressCreateSchema,
-    AddressUpdateSchema,
-)
 from thorpat.rest_api.schemas.base_schemas import (
     BaseResponse,
 )
-from ninja.errors import HttpError
-
+from thorpat.rest_api.schemas.profiles import (
+    AddressCreateSchema,
+    AddressSchema,
+    AddressUpdateSchema,
+)
 
 # ใช้ auth=JWTAuth() เพื่อให้ endpoint ทั้งหมดใน router นี้ต้องมีการยืนยันตัวตน
 # ถ้าบาง endpoint ไม่ต้องการ auth ให้ใส่ auth=None ที่ decorator ของ endpoint นั้นๆ
@@ -44,18 +44,6 @@ def create_address(request: HttpRequest, payload: AddressCreateSchema):
         raise HttpError(400, str(e))
 
 
-@router.get("/addresses/", response=BaseResponse[List[AddressSchema]])
-def list_addresses(request: HttpRequest):
-    """
-    List all addresses for the authenticated user.
-    """
-    if not request.user or not request.user.is_authenticated:
-        raise HttpError(401, "Authentication required.")
-
-    addresses = Address.objects.filter(user=request.user)
-    return BaseResponse(success=True, data=list(addresses))
-
-
 @router.get("/addresses/{address_id}/", response=BaseResponse[AddressSchema])
 def retrieve_address(request: HttpRequest, address_id: int):
     """
@@ -63,6 +51,7 @@ def retrieve_address(request: HttpRequest, address_id: int):
     """
 
     address = get_object_or_404(Address, id=address_id, user=request.user)
+
     return BaseResponse(success=True, data=address)
 
 

@@ -1,5 +1,6 @@
 from django.http import HttpResponse
 from ninja.errors import AuthenticationError, HttpError
+
 from thorpat.rest_api.schemas.base_schemas import ErrorDetail, ErrorResponse
 
 

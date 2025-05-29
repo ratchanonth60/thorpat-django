@@ -52,7 +52,7 @@ class Address(models.Model):
 
     class Meta:
         verbose_name = _("Address")
-        verbose_name_plural = _("Addresses")
+
         ordering = ["-created_at"]
 
     def __str__(self):

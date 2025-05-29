@@ -16,6 +16,8 @@ APPS_THIRD_PARTY = [
     # "rest_framework",
     # "rest_framework.authtoken",
     # "corsheaders",
+    "django_prometheus",
+    "django_typer",
     "django_countries",
     "phonenumber_field",
 ]

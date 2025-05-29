@@ -8,13 +8,39 @@ from thorpat.apps.profiles.models import Address
 
 
 class AddressSchema(ModelSchema):
-    # user: UserSchema # ถ้าต้องการแสดงข้อมูล user เต็มๆ
-    user_id: int  # หรือจะใช้ user_id เพื่อความง่ายในการสร้าง/อัปเดต
-
     class Meta:
-        model = Address
-        fields = "__all__"  # หรือระบุ fields ที่ต้องการ
-        # exclude = ['user'] # ถ้าใช้ user_id แทน
+        model = Address  # Your Django Address model
+        fields = [
+            "id",
+            "user",  # Or just user if it resolves to the ID or a nested schema
+            "address_line_1",
+            "address_line_2",
+            "city",
+            "state_province",
+            "postal_code",
+            "phone_number",
+            "country",  # This will now correctly handle None from the model
+            "address_type",
+            "is_default_shipping",
+            "is_default_billing",
+            "created_at",
+            "updated_at",
+        ]
+        # exclude = ['user'] # If using user_id instead of the full user object
+
+    @staticmethod
+    def resolve_phone_number(obj):
+        if not obj.phone_number:
+            return
+        print(f"Resolving phone number for address ID {obj.id}: {obj.phone_number}")
+        return f"{obj.phone_number}"
+
+    @staticmethod
+    def resolve_country(obj):
+        if not obj.country:
+            return
+        print(f"Resolving country for address ID {obj.id}: {obj.country}")
+        return f"{obj.country.code}"
 
 
 class AddressCreateSchema(Schema):

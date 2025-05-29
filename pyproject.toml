@@ -146,3 +146,6 @@ omit = [
 show_missing = true
 skip_covered = true
 fail_under = 80 # Optional: ตั้ง % coverage ขั้นต่ำ
+
+[tool.basedpyright]
+typeCheckingMode = "standard"
