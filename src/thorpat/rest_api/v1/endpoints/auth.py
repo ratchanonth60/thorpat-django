@@ -35,7 +35,15 @@ router = Router(tags=["authentication"], auth=None)  # auth=None for public endp
 @router.post("/login", response=BaseResponse[TokenResponseSchema])
 def login(request: HttpRequest, data: LoginSchema):
     user = authenticate(username=data.username, password=data.password)
-    if user is not None and isinstance(user, User):
+    log.info(f"Login attempt for user: {data.username}")
+    log.debug(
+        f"Authenticated user: {User.objects.filter(username=data.username).first()}"
+    )
+
+    log.info(f"User {user} logged in")
+    log.debug(f"User object: {user is not None}")  # Log the user object for debugging
+    if user is not None:
+        log.debug(f"User is: {user.is_active}")  # Log the user object for debugging
         if not user.is_active:  # Check if user is active (email confirmed)
             raise HttpError(
                 403, "Account not activated. Please check your email to confirm."
@@ -50,7 +58,7 @@ def login(request: HttpRequest, data: LoginSchema):
                 refresh_token=refresh_token_str,
             ),
         )
-    raise HttpError(401, "Invalid username or password")
+    raise HttpError(401, "Invalid username or password or account not activated.")
 
 
 @router.post(
@@ -66,7 +74,6 @@ def register_user(
         raise HttpError(400, "Username already exists.")
     if User.objects.filter(email=data.email).exists():
         raise HttpError(400, "Email already registered.")
-
     user = User.objects.create_user(
         username=data.username,
         email=data.email,
@@ -181,4 +188,3 @@ def password_reset_confirm(
             success=True, message="Password has been reset successfully."
         )
     raise HttpError(400, "Invalid reset link or token.")
-

@@ -71,6 +71,7 @@ def get_current_user(request: HttpRequest):
     """
     Get the profile of the currently authenticated user.
     """
+    print(request.user)
     return BaseResponse(success=True, data=UserSchema.from_orm(request.user))
 
 

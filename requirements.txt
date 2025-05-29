@@ -13,3 +13,8 @@ sentry-sdk[django]
 colorlog
 django-typer
 django-prometheus
+pytest  # If you want to pin a specific version
+pytest-django
+pytest-xdist
+factory-boy
+debugpy

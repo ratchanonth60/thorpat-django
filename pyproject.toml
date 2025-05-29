@@ -127,7 +127,7 @@ python_files = ["tests.py", "test_*.py", "*_tests.py"]
 # testpaths = [
 #     "src/thorpat/apps/users/tests",
 # ]
-addopts = "--cov=src/thorpat --cov-report=html --cov-report=term-missing -ra -q" # Example options for coverage and test reporting
+addopts = "--reuse-db -n auto --disable-pytest-warnings" # Example options for coverage and test reporting
 
 [tool.coverage.run]
 source = ["src/thorpat"]
@@ -142,10 +142,4 @@ omit = [
     "src/thorpat/__init__.py", #
 ]
 
-[tool.coverage.report]
-show_missing = true
-skip_covered = true
-fail_under = 80 # Optional: ตั้ง % coverage ขั้นต่ำ
 
-[tool.basedpyright]
-typeCheckingMode = "standard"
