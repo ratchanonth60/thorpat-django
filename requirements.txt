@@ -19,3 +19,7 @@ pytest-xdist
 factory-boy
 debugpy
 pytest-cov
+flake8-pyproject
+django-cors-headers
+django-allauth
+requests

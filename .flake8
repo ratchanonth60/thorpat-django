@@ -1,0 +1,15 @@
+max-line-length = 120
+extend-ignore = "E203, E501, W503" # E203: whitespace before ':', E501: line too long (black handles), W503: line break before binary operator
+exclude = [
+    ".git",
+    "__pycache__",
+    "docs",
+    "build",
+    "dist",
+    "venv",
+    ".venv",
+    "env",
+    "*/migrations/*",
+    "manage.py", #
+    # "src/thorpat/settings/base.py", # # F403 อาจจะต้อง ignore ถ้ามีการใช้ from .base import *
+]

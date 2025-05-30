@@ -1,0 +1,15 @@
+FROM noobmaster666/thorpat-django-template 
+
+WORKDIR /app
+
+COPY --chown=appuser:appuser . . 
+
+RUN pip install -r requirements.txt
+# Set environment variables to optimize Python
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Switch to non-root user
+USER appuser
+
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

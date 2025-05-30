@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0"] # หรือ Poetry/PDM ถ้าใช้
+requires = ["setuptools>=80.0", "wheel"] # หรือ Poetry/PDM ถ้าใช้
 build-backend = "setuptools.build_meta"
 backend-path = ["."] # สำหรับ setuptools
 
@@ -41,12 +41,12 @@ dev = [
     "pytest",
     "pytest-django",
     "pytest-cov", # สำหรับ coverage
-    # "flake8-pyproject", # ถ้าต้องการให้ flake8 อ่านจาก pyproject.toml โดยตรง (อาจไม่จำเป็นถ้า flake8 version ใหม่รองรับ)
+    "flake8-pyproject", # ถ้าต้องการให้ flake8 อ่านจาก pyproject.toml โดยตรง (อาจไม่จำเป็นถ้า flake8 version ใหม่รองรับ)
 ]
 
 [project.urls]
 # Homepage = "https://yourprojecturl.com/"
-# Repository = "https://github.com/yourusername/thorpat-django/"
+Repository = "https://github.com/ratchanonth60/thorpat-django"
 
 # --- Tool Configurations ---
 
@@ -56,8 +56,8 @@ include = ["thorpat*"]
 namespaces = false
 
 [tool.black]
-line-length = 88
-target-version = ['py38', 'py39', 'py310'] # ระบุเวอร์ชัน Python ที่รองรับ
+line-length = 120
+target-version = ['py313'] # ระบุเวอร์ชัน Python ที่รองรับ
 include = '\.pyi?$'
 exclude = '''
 /(
@@ -92,6 +92,7 @@ max-line-length = 120
 extend-ignore = "E203, E501, W503" # E203: whitespace before ':', E501: line too long (black handles), W503: line break before binary operator
 exclude = [
     ".git",
+    "__init__",
     "__pycache__",
     "docs",
     "build",
