@@ -17,10 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from thorpat.rest_api.api import app
-
 urlpatterns = [
     path("", include("django_prometheus.urls")),
     path("admin/", admin.site.urls),
-    path("api/", app.urls),
+    path("api/", include("thorpat.api.v1.urls")),
 ]

@@ -14,8 +14,6 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
-from ninja.throttling import AnonRateThrottle, AuthRateThrottle
-
 from thorpat import APPS, APPS_BASE, APPS_THIRD_PARTY
 
 from .db import *  # noqa: F401, F403
@@ -116,23 +114,34 @@ STATIC_URL = "/static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-JWT_SECRET_KEY = os.environ.get("DJANGO_JWT_SECRET_KEY", SECRET_KEY)
-JWT_ALGORITHM = "HS256"
-JWT_ACCESS_TOKEN_LIFETIME = timedelta(minutes=60)  # Example: Access token lifetime
-JWT_REFRESH_TOKEN_LIFETIME = timedelta(
-    days=1
-)  # Example: Refresh token lifetime (if you implement refresh tokens)
-
-NINJA_SETTINGS = {
-    "title": "Thorpat API",
-    "version": "1.0.0",
-    "csrf": True,
-    "throttle": [
-        AnonRateThrottle("10/s"),
-        AuthRateThrottle("100/s"),
-    ],
+REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "thorpat.api.exception_handler.custom_exception_handler",
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_AUTHENTICATION_CLASSES": ("thorpat.api.authentication.Authentication",),
 }
 
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
+    "SLIDING_TOKEN_LIFETIME": timedelta(days=30),
+    "SLIDING_TOKEN_REFRESH_LIFETIME_LATE_USER": timedelta(days=1),
+    "SLIDING_TOKEN_LIFETIME_LATE_USER": timedelta(days=30),
+    "TOKEN_OBTAIN_SERIALIZER": "thorpat.api.v1.auth.serializers.MyTokenObtainPairSerializer",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Your Project API",
+    "DESCRIPTION": "Your project description",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "SWAGGER_UI_SETTINGS": {
+        "persistAuthorization": True,
+    },
+}
 EMAIL_BACKEND = os.environ.get(
     "DJANGO_EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
 )  # For development

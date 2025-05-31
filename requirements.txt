@@ -23,3 +23,9 @@ flake8-pyproject
 django-cors-headers
 django-allauth
 requests
+drf-yasg
+djangorestframework
+markdown
+django-filter
+drf-spectacular
+djangorestframework-simplejwt
