@@ -5,20 +5,14 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
-from thorpat.api.v1.auth.views import (
-    CustomTokenObtainPairView,
-    CustomTokenRefreshView,
-    CustomTokenVerifyView,
-)
+from thorpat.api.v1.auth.routers import urlpatterns as v1_auth_urlpatterns
+from thorpat.api.v1.profiles.routers import router as v1_profiles_router
 from thorpat.api.v1.users.routers import router as v1_users_router
 
 urlpatterns = [
     path("v1/", include(v1_users_router.urls)),
-    path(
-        "v1/auth/login/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"
-    ),
-    path("v1/auth/refresh/", CustomTokenRefreshView.as_view(), name="token_refresh"),
-    path("v1/auth/verify/", CustomTokenVerifyView.as_view(), name="token_verify"),
+    path("v1/auth/", include(v1_auth_urlpatterns)),
+    path("v1/profiles/", include(v1_profiles_router.urls)),
     path("v1/schema/", SpectacularAPIView.as_view(), name="schema"),
     # Optional UI:
     path(

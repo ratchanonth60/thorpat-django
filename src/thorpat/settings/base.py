@@ -119,6 +119,12 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": ("thorpat.api.authentication.Authentication",),
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        # You can optionally add DRF's OrderingFilter here if you want it by default for all views
+    ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
 }
 
 SIMPLE_JWT = {
@@ -135,12 +141,26 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "Your project description",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
-    "AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
+    # "AUTHENTICATION_CLASSES": ("thorpat.api.authentication.Authentication",),
     "SWAGGER_UI_SETTINGS": {
         "persistAuthorization": True,
     },
+    # Explicitly map your custom JWT Authentication to the SimpleJWTScheme
+    # This is often more reliable than relying on SPECTACULAR_SETTINGS['AUTHENTICATION_CLASSES'] alone
+    # for custom subclasses.
+    "APPEND_COMPONENTS": {
+        "securitySchemes": {
+            "jwtAuth": {  # You can name this security scheme
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+            }
+        }
+    },
+    "SECURITY": [{"jwtAuth": []}],
+    "AUTHENTICATION_CLASSES": [  # Ensure this is a list or tuple
+        "thorpat.api.authentication.Authentication",
+    ],
 }
 EMAIL_BACKEND = os.environ.get(
     "DJANGO_EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
@@ -156,3 +176,22 @@ SITE_BASE_URL = os.environ.get("DJANGO_SITE_BASE_URL", "http://localhost:8000")
 FRONTEND_URL = os.environ.get(
     "FRONTEND_URL", "http://localhost:8000"
 )  # Default fallback
+
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379/0")
+CELERY_RESULT_BACKEND = os.environ.get(
+    "CELERY_RESULT_BACKEND", "redis://redis:6379/0"
+)  # ถ้าต้องการเก็บผลลัพธ์ task
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE  # ใช้ TIME_ZONE ของ Django
+CELERY_TASK_TRACK_STARTED = True
+CACHEOPS_REDIS = os.environ.get("CELERY_RESULT_BACKEND", "redis://redis:6379/0")
+
+CACHEOPS_DEFAULTS = {"timeout": 60 * 60}
+CACHEOPS = {
+    "auth.user": {"ops": "get", "timeout": 60 * 15},
+    "auth.*": {"ops": ("fetch", "get")},
+    "auth.permission": {"ops": "all"},
+    "*.*": {},
+}

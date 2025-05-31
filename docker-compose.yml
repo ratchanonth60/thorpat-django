@@ -1,5 +1,6 @@
 volumes:
   postgres_data:
+  redis_data:
 
 services:
   django:
@@ -26,3 +27,27 @@ services:
       - "5432:5432"
     env_file:
       - .env
+
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.Django
+    restart: always
+    command: python -m celery -A thorpat worker -l info
+    volumes:
+      - ./src:/app/src
+    working_dir: /app/src
+    env_file:
+      - .env
+    depends_on:
+      - django
+      - redis
+      - db

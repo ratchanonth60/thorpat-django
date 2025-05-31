@@ -29,3 +29,6 @@ markdown
 django-filter
 drf-spectacular
 djangorestframework-simplejwt
+celery
+redis
+django-cacheops
