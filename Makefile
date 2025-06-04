@@ -35,6 +35,9 @@ up: build
 start: build
 	$(DOCKER_COMPOSE) up --remove-orphans
 
+restart:
+	$(DOCKER_COMPOSE) restart
+
 down:
 	$(DOCKER_COMPOSE) down -v --remove-orphans # -v removes volumes, be careful
 

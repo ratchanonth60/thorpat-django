@@ -9,6 +9,7 @@ APPS_BASE = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
 ]
 
 APPS = [
@@ -17,13 +18,17 @@ APPS = [
 ]
 
 APPS_THIRD_PARTY = [
-    # "rest_framework",
-    # "rest_framework.authtoken",
-    # "corsheaders",
+    "rest_framework",
+    "rest_framework.authtoken",
+    "corsheaders",
     "django_filters",
     "drf_spectacular",
-    "rest_framework",
+    # "rest_framework",
     "rest_framework_simplejwt",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
     # "django_prometheus",
     "django_typer",
     "django_countries",

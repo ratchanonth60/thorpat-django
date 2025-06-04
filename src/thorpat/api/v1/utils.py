@@ -29,9 +29,18 @@ token_generator = AppTokenGenerator()
 
 class ResponseAPI(Response):
     def __init__(
-        self, data=None, status=status.HTTP_200_OK, message=None, errors=None, **kwargs
+        self,
+        data=None,
+        status=status.HTTP_200_OK,
+        code=None,
+        message=None,
+        errors=None,
+        **kwargs,
     ):
+        if code is None:
+            code = status
         response_data = {
+            "code": code,
             "success": status < 300,
             "message": message if message else "Success" if status < 300 else "Failure",
             "data": data,

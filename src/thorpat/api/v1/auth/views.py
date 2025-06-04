@@ -1,7 +1,18 @@
+from urllib.parse import urljoin
+
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter, requests
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from allauth.socialaccount.providers.oauth2.views import render
+from dj_rest_auth.registration.views import SocialLoginView
+from django.conf import settings
+from django.urls import reverse
+from django.utils.decorators import method_decorator
 from django.utils.http import urlsafe_base64_decode
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import View
 from rest_framework import generics, permissions, serializers, status
 from rest_framework.mixins import Response
-from rest_framework.views import Request
+from rest_framework.views import APIView, Request
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -20,6 +31,33 @@ from thorpat.tasks.email import (
     send_activation_email_task,
     send_password_reset_email_task,
 )
+
+
+class CustomGoogleOAuth2Client(OAuth2Client):
+    def __init__(
+        self,
+        request,
+        consumer_key,
+        consumer_secret,
+        access_token_method,
+        access_token_url,
+        callback_url,
+        _scope,  # This is fix for incompatibility between django-allauth==65.3.1 and dj-rest-auth==7.0.1
+        scope_delimiter=" ",
+        headers=None,
+        basic_auth=False,
+    ):
+        super().__init__(
+            request,
+            consumer_key,
+            consumer_secret,
+            access_token_method,
+            access_token_url,
+            callback_url,
+            scope_delimiter,
+            headers,
+            basic_auth,
+        )
 
 
 class EmptySerializer(serializers.Serializer):

@@ -33,7 +33,7 @@ DEBUG = bool(os.environ.get("DEBUG", default=0))
 
 ALLOWED_HOSTS = []
 AUTH_USER_MODEL = "users.User"
-
+SITE_ID = 1
 
 # Application definition
 INSTALLED_APPS = APPS_BASE + APPS + APPS_THIRD_PARTY
@@ -68,7 +68,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "thorpat.wsgi.application"
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -115,6 +114,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 REST_FRAMEWORK = {
+    "DEFAULT_RENDERER_CLASSES": [
+        "thorpat.api.renderers.CustomAPIRenderer",
+        # 'rest_framework.renderers.BrowsableAPIRenderer', # ถ้ายังต้องการใช้ Browsable API
+    ],
     "EXCEPTION_HANDLER": "thorpat.api.exception_handler.custom_exception_handler",
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
@@ -195,3 +198,24 @@ CACHEOPS = {
     "auth.permission": {"ops": "all"},
     "*.*": {},
 }
+SITE_ID = 1
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APP": {
+            "client_id": os.environ.get("CLIENT_ID"),
+            "secret": os.environ.get("CLIENT_SECRET"),
+        },
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+        "VERIFIED_EMAIL": True,
+        "OAUTH_PKCE_ENABLED": True,
+        "FETCH_USERINFO": True,
+    },
+}
+
+SOCIALACCOUNT_LOGIN_ON_GET = True

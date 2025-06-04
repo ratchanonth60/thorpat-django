@@ -32,3 +32,4 @@ djangorestframework-simplejwt
 celery
 redis
 django-cacheops
+dj-rest-auth[with_social]
