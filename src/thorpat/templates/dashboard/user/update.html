@@ -1,0 +1,39 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block dashboard_title %}{% trans "Update Profile" %}{% endblock dashboard_title %}
+{% block dashboard_page_title %}{% trans "Update Your Profile" %}{% endblock dashboard_page_title %}
+
+{% block dashboard_content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+            {% trans "Update Your Profile" %}
+        </h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">
+            {% trans "Keep your personal information up to date." %}
+        </p>
+    </div>
+    <div id="update-profile-form-container" class="border-t border-gray-200 px-4 py-5 sm:p-6">
+        {# HTMX จะโหลดฟอร์มเริ่มต้น หรือ render ฟอร์มถ้ามีการ validate error #}
+        {% include "dashboard/user/partials/update_form_partial.html" with form=form %}
+    </div>
+</div>
+{% endblock dashboard_content %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<script>
+document.body.addEventListener('htmx:afterSwap', function(event) {
+    if (event.detail.target.id === 'update-profile-form-container' && event.detail.xhr.status === 200) {
+        // ตรวจสอบว่ามี message 'success' จาก hx-trigger header หรือไม่
+        const triggeredEvents = JSON.parse(event.detail.xhr.getResponseHeader('HX-Trigger') || '{}');
+        if (triggeredEvents && triggeredEvents.showMessage) {
+            // สามารถแสดง message ที่นี่ได้ เช่นใช้ Toast library
+            alert(triggeredEvents.showMessage.message); // ตัวอย่าง alert ง่ายๆ
+        }
+    }
+});
+</script>
+{% endblock %}

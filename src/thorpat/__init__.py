@@ -12,10 +12,7 @@ APPS_BASE = [
     "django.contrib.sites",
 ]
 
-APPS = [
-    "thorpat.apps.users",
-    "thorpat.apps.profiles",
-]
+APPS = ["thorpat.apps.users", "thorpat.apps.profiles", "thorpat.apps.activitylog"]
 
 APPS_THIRD_PARTY = [
     "rest_framework",
@@ -33,4 +30,6 @@ APPS_THIRD_PARTY = [
     "django_typer",
     "django_countries",
     "phonenumber_field",
+    "django_htmx",
+    "widget_tweaks",
 ]

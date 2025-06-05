@@ -14,6 +14,8 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+from django.urls import reverse_lazy
+
 from thorpat import APPS, APPS_BASE, APPS_THIRD_PARTY
 
 from .db import *  # noqa: F401, F403
@@ -219,3 +221,8 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 SOCIALACCOUNT_LOGIN_ON_GET = True
+
+LOGIN_REDIRECT_URL = reverse_lazy("dashboard:dashboard_user")
+LOGIN_URL = "account_login"
+ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True  # (Default is True, good to be explicit)
+ACCOUNT_LOGOUT_REDIRECT_URL = reverse_lazy("home")

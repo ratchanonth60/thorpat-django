@@ -1,0 +1,142 @@
+{% extends "base.html" %} {# หรือ "base.html" ถ้าคุณใช้ base template เดียว #}
+{% load i18n %}
+{% load account socialaccount %} {# สำหรับ allauth และ social login #}
+{% load widget_tweaks %} {# หรือ {% load form_filters %} ถ้าคุณสร้าง custom filter เองและแก้ไขแล้ว #}
+
+{% block title %}{% trans "Sign In" %}{% endblock %}
+
+{% block content %}
+<div class="min-v-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Sign In to your Account
+        </h2>
+        <p class="mt-2 text-center text-sm text-gray-600">
+            Or <a href="{% url 'account_signup' %}" class="font-medium text-indigo-600 hover:text-indigo-500">
+                create a new account
+            </a>
+        </p>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <form method="POST" action="{% url 'account_login' %}" class="space-y-6">
+                {% csrf_token %}
+
+                {% for field in form %}
+                <div>
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        {{ field.label }}
+                    </label>
+                    <div class="mt-1">
+                        {% if field.name == 'login' %} {# 'login' is usually the name for the username/email field in allauth #}
+                            {# Render 'login' field manually to easily add HTMX attributes #}
+                            <input type="{{ field.field.widget.input_type }}"
+                                   name="{{ field.html_name }}"
+                                   id="{{ field.id_for_label }}"
+                                   class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                   {% if field.value %}value="{{ field.value|escape }}"{% endif %}
+                                   hx-post="{% url 'users:validate_username' %}" {# Ensure this URL is correct based on your latest URL config #}
+                                   hx-vals='{"csrfmiddlewaretoken": "{{ csrf_token }}"}'
+                                   hx-trigger="blur"
+                                   hx-target="#username-error"
+                                   hx-swap="innerHTML">
+                            <div id="username-error" class="text-red-500 text-xs mt-1 h-4"></div> {# h-4 for consistent height #}
+                        {% elif field.name == 'remember' %}
+                            {# Special handling for the 'remember' checkbox, often outside the main field loop styling #}
+                            {# This will be handled below outside the loop if form.remember exists #}
+                        {% else %}
+                            {# Use add_class filter for other fields #}
+                            {{ field|add_class:"appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" }}
+                        {% endif %}
+                    </div>
+                    {% if field.name != 'remember' and field.errors %} {# Don't show errors for remember field here if handled separately #}
+                        <div class="text-red-500 text-xs mt-1">
+                            {% for error in field.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                {% if form.non_field_errors %}
+                    <div class="rounded-md bg-red-50 p-4 my-4">
+                        <div class="flex">
+                            {# Icon can be added here if desired #}
+                            <div class="ml-3">
+                                <div class="text-sm text-red-700">
+                                    <ul role="list" class="list-disc pl-5 space-y-1">
+                                        {% for error in form.non_field_errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        {% if form.remember %} {# Check if remember field exists (it's common in allauth login form) #}
+                            {{ form.remember|add_class:"h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" }}
+                            <label for="{{ form.remember.id_for_label }}" class="ml-2 block text-sm text-gray-900">
+                                {{ form.remember.label }}
+                            </label>
+                        {% endif %}
+                    </div>
+
+                    <div class="text-sm">
+                        <a href="{% url 'account_reset_password' %}" class="font-medium text-indigo-600 hover:text-indigo-500">
+                            Forgot your password?
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        {% trans "Sign In" %}
+                    </button>
+                </div>
+            </form>
+
+            {% get_providers as socialaccount_providers %}
+            {% if socialaccount_providers %}
+            <div class="mt-6">
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-white text-gray-500">
+                            Or continue with
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mt-6 grid grid-cols-1 gap-3">
+                     {% for provider in socialaccount_providers %}
+                        {% if provider.id == "google" %} {# You can add more providers similarly #}
+                            <div>
+                                <a href="{% provider_login_url provider.id process='login' %}"
+                                   class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    <span class="sr-only">Sign in with {{ provider.name }}</span>
+                                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" aria-hidden="true">
+                                        <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
+                                        <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path>
+                                        <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path>
+                                        <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
+                                    </svg>
+                                    <span class="ml-2">Sign in with Google</span>
+                                </a>
+                            </div>
+                        {% endif %}
+                     {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

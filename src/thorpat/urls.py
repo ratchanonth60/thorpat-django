@@ -17,9 +17,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+from .views import home_view
 
 urlpatterns = [
+    path("", home_view, name="home"),
+    path("apps/", include("thorpat.apps.urls")),
     path("admin/", admin.site.urls),
     path("api/", include("thorpat.api.v1.urls")),
     path("accounts/", include("allauth.urls")),
+    path("dashboard/", include("thorpat.apps.dashboard.urls")),
 ]

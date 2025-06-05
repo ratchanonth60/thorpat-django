@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Thorpat Django{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4">Welcome to Thorpat-Django!</h1>
+    <p class="lead">This is the main landing page for the application.</p>
+    <hr class="my-4">
+    {% if user.is_authenticated %}
+        <p>You are logged in as {{ user.username }}.</p>
+        <a class="btn btn-primary btn-lg" href="{% url 'account_logout' %}" role="button">Logout</a>
+    {% else %}
+        <p>You can login or sign up using the links in the navigation bar.</p>
+        <a class="btn btn-primary btn-lg mr-2" href="{% url 'account_login' %}" role="button">Login</a>
+        <a class="btn btn-success btn-lg" href="{% url 'account_signup' %}" role="button">Sign Up</a>
+    {% endif %}
+</div>
+{% endblock %}
