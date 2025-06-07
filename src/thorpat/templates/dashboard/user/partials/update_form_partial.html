@@ -1,11 +1,10 @@
-{% load widget_tweaks %}
 {% load i18n %}
-{# Rest of your partial template #}
+{% load widget_tweaks %}
 
 <form method="post"
-      hx-post="{% url 'dashboard:user_update' %}" {# URL ของ UpdateView #}
-      hx-target="#update-profile-form-container" {# เป้าหมายที่จะ update คือ container ของฟอร์มเอง #}
-      hx-swap="outerHTML" {# แทนที่ container ทั้งหมดด้วย response (เพื่อให้ error ของฟอร์มแสดงผลถูกต้อง) #}
+      hx-post="{% url 'dashboard:user_update' %}"
+      hx-target="#update-profile-form-container" 
+      hx-swap="outerHTML"
       class="space-y-6">
     {% csrf_token %}
 

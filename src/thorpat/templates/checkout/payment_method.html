@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Checkout - Review & Pay" %}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">{% trans "Review Your Order" %}</h1>
+    
+    <form action="{% url 'checkout:payment_method' %}" method="post">
+        {% csrf_token %}
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-2">{% trans "Shipping To:" %}</h2>
+            <p class="text-gray-700">
+                {{ address.address_line_1 }}<br>
+                {{ address.city }}, {{ address.postal_code }}<br>
+                {{ address.country.name }}
+            </p>
+
+            <h2 class="text-xl font-semibold mt-6 mb-2">{% trans "Order Summary:" %}</h2>
+            <ul class="list-disc pl-5 text-gray-700">
+                {% for line in cart.lines.all %}
+                    <li>{{ line.product.title }} (x{{ line.quantity }})</li>
+                {% endfor %}
+            </ul>
+            <p class="font-bold mt-2">Total: ฿{{ cart.total_excl_tax|floatformat:2 }}</p>
+
+            <hr class="my-6">
+            
+            <p class="text-center text-gray-600 mb-4">{% trans "Ready to complete your purchase? Click the button below." %}</p>
+            
+            <div class="mt-6 text-center">
+                <button type="submit" class="bg-indigo-600 text-white rounded-lg px-10 py-3 font-semibold hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    {% trans "Place Order" %}
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

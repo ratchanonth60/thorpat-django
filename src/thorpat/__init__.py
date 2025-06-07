@@ -12,7 +12,15 @@ APPS_BASE = [
     "django.contrib.sites",
 ]
 
-APPS = ["thorpat.apps.users", "thorpat.apps.profiles", "thorpat.apps.activitylog"]
+APPS = [
+    "thorpat.apps.users",
+    "thorpat.apps.profiles",
+    "thorpat.apps.activitylog",
+    "thorpat.apps.catalogue",
+    "thorpat.apps.cart",
+    "thorpat.apps.checkout",
+    "thorpat.apps.order",
+]
 
 APPS_THIRD_PARTY = [
     "rest_framework",

@@ -22,3 +22,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
+
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",  # If your static folder is at src/static/
+]
+STATIC_ROOT = BASE_DIR.parent / "staticfiles"

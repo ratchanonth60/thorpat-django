@@ -1,0 +1,11 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load i18n %}
+
+{% block dashboard_title %}{% trans "Manage Orders" %}{% endblock %}
+{% block dashboard_page_title %}{% trans "Order Management" %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="bg-white p-6 rounded-lg shadow-md">
+    <p>{% trans "This is where you will manage customer orders." %}</p>
+</div>
+{% endblock %}

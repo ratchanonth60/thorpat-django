@@ -108,7 +108,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = "/static/"
-
+STATICFILES_DIRS = [
+    BASE_DIR / "static",  # If your static folder is at src/static/
+]
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
@@ -222,7 +224,7 @@ SOCIALACCOUNT_PROVIDERS = {
 
 SOCIALACCOUNT_LOGIN_ON_GET = True
 
-LOGIN_REDIRECT_URL = reverse_lazy("dashboard:dashboard_user")
+LOGIN_REDIRECT_URL = reverse_lazy("dashboard:user_info")
 LOGIN_URL = "account_login"
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True  # (Default is True, good to be explicit)
 ACCOUNT_LOGOUT_REDIRECT_URL = reverse_lazy("home")

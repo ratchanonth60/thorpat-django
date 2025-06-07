@@ -1,0 +1,48 @@
+{% load i18n %}
+<nav class="flex-grow pt-4">
+    {% url 'dashboard:user_info' as user_main_url %}
+    {% url 'order:order_history' as order_history_url %}
+    {% url 'dashboard:user_update' as user_update_url %}
+    
+    {# New URLs for Admin Dashboard sections #}
+    {% url 'dashboard:admin_orders_list' as admin_orders_list_url %}
+    {% url 'dashboard:admin_products_list' as admin_products_list_url %}
+    {% url 'dashboard:admin_customers_list' as admin_customers_list_url %}
+    {% url 'dashboard:admin_reports_main' as admin_reports_main_url %}
+
+    <a href="{{ user_main_url }}" class="flex items-center py-2.5 px-4 rounded-md transition duration-150 {% if request.resolver_match.view_name == 'dashboard:user_info' %}active-sidebar-link{% else %}hover:bg-gray-700 hover:text-white{% endif %}">
+        <i class="fas fa-tachometer-alt w-5 h-5 mr-3 text-center"></i>
+        {% trans "Dashboard" %}
+    </a>
+    <a href="{{ order_history_url }}" class="flex items-center py-2.5 px-4 rounded-md transition duration-150 {% if request.resolver_match.app_name == 'order' %}active-sidebar-link{% else %}hover:bg-gray-700 hover:text-white{% endif %}">
+        <i class="fas fa-receipt w-5 h-5 mr-3 text-center"></i>
+        {% trans "My Orders" %}
+    </a>
+
+    <hr class="my-3 border-gray-700">
+    <p class="px-4 text-xs uppercase text-gray-500 font-semibold tracking-wider">{% trans "Store Management" %}</p>
+
+    <a href="{{ admin_orders_list_url }}" class="flex items-center py-2.5 px-4 rounded-md transition duration-150 {% if 'admin_orders' in request.resolver_match.view_name %}active-sidebar-link{% else %}hover:bg-gray-700 hover:text-white{% endif %}">
+        <i class="fas fa-dolly-flatbed w-5 h-5 mr-3 text-center"></i>
+        {% trans "Orders" %}
+    </a>
+    <a href="{{ admin_products_list_url }}" class="flex items-center py-2.5 px-4 rounded-md transition duration-150 {% if 'admin_products' in request.resolver_match.view_name %}active-sidebar-link{% else %}hover:bg-gray-700 hover:text-white{% endif %}">
+        <i class="fas fa-box w-5 h-5 mr-3 text-center"></i>
+        {% trans "Products" %}
+    </a>
+    <a href="{{ admin_customers_list_url }}" class="flex items-center py-2.5 px-4 rounded-md transition duration-150 {% if 'admin_customers' in request.resolver_match.view_name %}active-sidebar-link{% else %}hover:bg-gray-700 hover:text-white{% endif %}">
+        <i class="fas fa-users w-5 h-5 mr-3 text-center"></i>
+        {% trans "Customers" %}
+    </a>
+    <a href="{{ admin_reports_main_url }}" class="flex items-center py-2.5 px-4 rounded-md transition duration-150 {% if 'admin_reports' in request.resolver_match.view_name %}active-sidebar-link{% else %}hover:bg-gray-700 hover:text-white{% endif %}">
+        <i class="fas fa-chart-bar w-5 h-5 mr-3 text-center"></i>
+        {% trans "Reports" %}
+    </a>
+
+    <hr class="my-3 border-gray-700">
+
+    <a href="{{ user_update_url }}" class="flex items-center py-2.5 px-4 rounded-md transition duration-150 {% if request.resolver_match.view_name == 'dashboard:user_update' %}active-sidebar-link{% else %}hover:bg-gray-700 hover:text-white{% endif %}">
+        <i class="fas fa-user-cog w-5 h-5 mr-3 text-center"></i>
+        {% trans "Profile Settings" %}
+    </a>
+</nav>

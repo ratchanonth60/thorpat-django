@@ -1,0 +1,5 @@
+{% load i18n %}
+<div class="px-4 py-5 bg-white shadow rounded-lg sm:p-6">
+    <h2 class="text-xl font-semibold text-gray-800">{% blocktrans with username=request.user.first_name|default:request.user.username %}Welcome back, {{ username }}!{% endblocktrans %}</h2>
+    <p class="text-sm text-gray-500">{% trans "Here's what's happening with your store today." %}</p>
+</div>

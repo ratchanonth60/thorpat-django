@@ -2,113 +2,39 @@
 {% load i18n %}
 {% load static %}
 
-{% block dashboard_title %}{% trans "Overview" %}{% endblock dashboard_title %}
+{% block dashboard_title %}{% trans "User Overview" %}{% endblock dashboard_title %}
 
-{% block dashboard_page_title %}
-    {# The header in base_dashboard.html now handles "Welcome..." and top tabs #}
-    {# This block can be used if a specific page needs a subtitle or different H1 #}
-{% endblock dashboard_page_title %}
+{% block dashboard_page_title %}{% trans "Overview" %}{% endblock dashboard_page_title %}
 
 {% block dashboard_content %}
 <div class="space-y-6">
-    <div class="px-4 py-5 bg-white shadow rounded-lg sm:p-6 mb-6">
-        <h1 class="text-xl font-semibold text-gray-800">Welcome back, {{ request.user.first_name|default:request.user.username }}!</h1>
-        <p class="text-sm text-gray-500">Here's what's happening with your store today.</p>
-    </div>
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 bg-white p-4 sm:p-6 rounded-lg shadow">
-            <h3 class="text-base sm:text-lg font-medium text-gray-900 mb-4">Monthly Revenue</h3>
-            <div class="h-64 sm:h-72 bg-gray-50 rounded p-2">
-                <canvas id="monthlyRevenueChart"></canvas>
-            </div>
-        </div>
-        <div class="bg-white p-4 sm:p-6 rounded-lg shadow">
-            <h3 class="text-base sm:text-lg font-medium text-gray-900 mb-4">Daily Sales</h3>
-            <div class="h-64 sm:h-72 bg-gray-50 rounded p-2">
-                 <canvas id="dailySalesChart"></canvas>
-            </div>
-        </div>
-    </div>
+    {% include "dashboard/user/partials/_info_welcome_banner.html" %}
+    
+    {% include "dashboard/user/partials/_info_charts_row1.html" %}
 
-    <div class="bg-white p-4 sm:p-6 rounded-lg shadow">
-        <h3 class="text-base sm:text-lg font-medium text-gray-900 mb-4">Top Selling Products</h3>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Units Sold</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inventory</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fulfillment</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {# Example Data - Replace with dynamic data from context or HTMX #}
-                    {% for i in "1234" %} {# Loop for example rows #}
-                    <tr>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {% if i == "1" %}Dress - size M{% elif i == "2" %}Shirt - size L{% elif i == "3" %}Pants - size S{% else %}Jacket - size XL{% endif %}
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {% if i == "1" %}$1,200{% elif i == "2" %}$900{% elif i == "3" %}$800{% else %}$600{% endif %}
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {% if i == "1" %}40{% elif i == "2" %}30{% elif i == "3" %}50{% else %}20{% endif %}
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                             {% if i == "1" %}250{% elif i == "2" %}100{% elif i == "3" %}150{% else %}80{% endif %}
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm">
-                            {% if i == "1" or i == "3" %}
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">In stock</span>
-                            {% else %}
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Low stock</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                    {# End Example Data #}
-                </tbody>
-            </table>
-        </div>
-    </div>
+    {% include "dashboard/user/partials/_info_top_products_table.html" %}
+    
+    {% include "dashboard/user/partials/_info_charts_row2.html" %}
 
+    {# This section could also be a partial if it grows #}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="md:col-span-2 bg-white p-6 rounded-lg shadow">
-            <h3 class="text-base sm:text-lg font-medium text-gray-900 mb-4">Customer Demographics</h3>
-            <div class="h-48 bg-gray-50 rounded p-2">
-                 <canvas id="ageDistributionChart"></canvas>
-            </div>
-        </div>
-        <div class="space-y-6">
-            <div class="bg-white p-6 rounded-lg shadow text-center">
-                <p class="text-2xl sm:text-3xl font-semibold text-gray-900">$1,200</p>
-                <p class="text-xs sm:text-sm text-gray-500">Total Revenue</p>
-            </div>
-            <div class="bg-white p-6 rounded-lg shadow text-center">
-                <p class="text-2xl sm:text-3xl font-semibold text-gray-900">40</p>
-                <p class="text-xs sm:text-sm text-gray-500">New Customers</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-0 md:mt-6">
          <div class="md:col-start-3 space-y-6"> {# Align with the single column metrics above #}
             <div class="bg-white p-6 rounded-lg shadow text-center">
-                <p class="text-2xl sm:text-3xl font-semibold text-gray-900">250</p>
-                <p class="text-xs sm:text-sm text-gray-500">Units Sold</p>
+                <p class="text-2xl sm:text-3xl font-semibold text-gray-900">250</p> {# Example data #}
+                <p class="text-xs sm:text-sm text-gray-500">{% trans "Units Sold" %}</p>
             </div>
             <div class="bg-white p-6 rounded-lg shadow text-center">
-                <p class="text-xl sm:text-2xl font-semibold text-green-600">All Good!</p>
-                <p class="text-xs sm:text-sm text-gray-500">System Status</p>
+                <p class="text-xl sm:text-2xl font-semibold text-green-600">{% trans "All Good!" %}</p>
+                <p class="text-xs sm:text-sm text-gray-500">{% trans "System Status" %}</p>
             </div>
         </div>
     </div>
 
+    {# Consider if this button is global to the dashboard or specific to this page.
+       If global, it might belong in base_dashboard.html within a specific block. #}
     <div class="fixed bottom-6 right-6 print:hidden">
         <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg flex items-center">
-            <i class="fas fa-plus mr-2"></i> New Product
+            <i class="fas fa-plus mr-2"></i> {% trans "New Product" %}
         </button>
     </div>
 
@@ -126,10 +52,10 @@
             new Chart(revenueCtx, {
                 type: 'line',
                 data: {
-                    labels: ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                    labels: ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'], // Example labels
                     datasets: [{
-                        label: 'Revenue',
-                        data: [1200, 1900, 3000, 5000, 2300, 3200],
+                        label: '{% trans "Revenue" %}',
+                        data: [1200, 1900, 3000, 5000, 2300, 3200], // Example data
                         borderColor: 'rgb(75, 192, 192)',
                         backgroundColor: 'rgba(75, 192, 192, 0.1)',
                         tension: 0.4,
@@ -146,10 +72,10 @@
             new Chart(salesCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], // Example labels
                     datasets: [{
-                        label: 'Sales',
-                        data: [12, 19, 30, 50, 23, 32, 45],
+                        label: '{% trans "Sales" %}',
+                        data: [12, 19, 30, 50, 23, 32, 45], // Example data
                         backgroundColor: 'rgba(54, 162, 235, 0.6)',
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1
@@ -163,12 +89,12 @@
         const ageCtx = document.getElementById('ageDistributionChart')?.getContext('2d');
         if (ageCtx) {
             new Chart(ageCtx, {
-                type: 'bar',
+                type: 'bar', // Consider 'pie' or 'doughnut' for demographics too
                 data: {
-                    labels: ['18-24', '25-34', '35-44', '45-54', '55+'],
+                    labels: ['18-24', '25-34', '35-44', '45-54', '55+'], // Example labels
                     datasets: [{
-                        label: 'Customers',
-                        data: [3, 7, 10, 8, 2],
+                        label: '{% trans "Customers" %}',
+                        data: [3, 7, 10, 8, 2], // Example data
                         backgroundColor: 'rgba(153, 102, 255, 0.6)',
                         borderColor: 'rgba(153, 102, 255, 1)',
                         borderWidth: 1
@@ -180,4 +106,3 @@
     });
 </script>
 {% endblock %}
-

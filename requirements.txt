@@ -35,3 +35,4 @@ django-cacheops
 dj-rest-auth[with_social]
 django-widget-tweaks
 django-htmx
+Pillow
