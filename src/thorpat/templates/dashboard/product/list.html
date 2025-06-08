@@ -1,0 +1,102 @@
+{% extends "dashboard/base_list.html" %}
+{% load i18n %}
+
+{# --- บล็อกสำหรับ Title ของหน้า --- #}
+{% block list_title %}{% trans "All Products" %}{% endblock %}
+
+{# --- บล็อกสำหรับปุ่ม "Add New" --- #}
+{# ในที่นี้เราย้ายปุ่ม Add new ไปไว้ใน list_controls แล้ว บล็อกนี้จึงว่างเปล่า #}
+{% block add_new_button %}
+{% endblock %}
+
+{# --- บล็อกสำหรับส่วนควบคุม (Filter) --- #}
+{% block list_controls %}
+    {% include "dashboard/product/partials/list_controls.html" %}
+{% endblock %}
+
+{# --- บล็อกสำหรับหัวตาราง --- #}
+{% block table_header %}
+    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Product" %}</th>
+    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Product ID" %}</th>
+    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Price" %}</th>
+    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Stock" %}</th>
+    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Start date" %}</th>
+    {# +++ แก้ไขบรรทัดนี้ +++ #}
+    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Actions" %}</th>
+{% endblock %}
+
+  {% block dashboard_content %}
+<div class="bg-white shadow-md rounded-lg p-4 sm:p-6">
+    <div id="product-list-container">
+        {% include "dashboard/product/_list_content.html" %}
+    </div>
+
+</div>
+{% endblock dashboard_content %}
+{# --- บล็อกสำหรับเนื้อหาตาราง --- #}
+{% block table_body %}
+    {% for product in products %}
+        {% include "dashboard/product/partials/product_row.html" with product=product %}
+    {% empty %}
+    <tr>
+        <td colspan="6" class="px-6 py-4 text-center text-gray-500">{% trans "No products found." %}</td>
+    </tr>
+    {% endfor %}
+{% endblock %}
+
+{% block extra_scripts_dashboard %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterButton = document.getElementById('filter-menu-button');
+    const filterMenu = document.getElementById('filter-menu');
+
+    if (filterButton && filterMenu) {
+        filterButton.addEventListener('click', function(event) {
+            event.stopPropagation();
+            filterMenu.classList.toggle('hidden');
+        });
+
+        window.addEventListener('click', function(event) {
+            if (!filterMenu.classList.contains('hidden') && !filterMenu.contains(event.target) && !filterButton.contains(event.target)) {
+                filterMenu.classList.add('hidden');
+            }
+        });
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // ฟังก์ชันสำหรับปิดเมนูทั้งหมด
+    function closeAllMenus() {
+        document.querySelectorAll('.action-menu').forEach(function(menu) {
+            menu.classList.add('hidden');
+        });
+    }
+
+    // เมื่อคลิกที่ปุ่ม action menu (ปุ่ม 3 จุด)
+    // สคริปต์จะหาปุ่มทั้งหมดที่มี class 'action-menu-button'
+    document.querySelectorAll('.action-menu-button').forEach(function(button) {
+        button.addEventListener('click', function(event) {
+            event.stopPropagation();
+            const menuId = this.dataset.menuId;
+            const targetMenu = document.getElementById(menuId);
+            
+            const isVisible = !targetMenu.classList.contains('hidden');
+            
+            closeAllMenus();
+            
+            if (!isVisible) {
+                targetMenu.classList.remove('hidden');
+            }
+        });
+    });
+
+    // เมื่อคลิกที่ใดๆ บนหน้าจอ ให้ปิดเมนูทั้งหมด
+    window.addEventListener('click', function() {
+        closeAllMenus();
+    });
+
+});
+</script>
+{% endblock extra_scripts_dashboard %}

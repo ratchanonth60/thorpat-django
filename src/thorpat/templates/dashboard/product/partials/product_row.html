@@ -1,0 +1,76 @@
+{% load i18n %}
+<tr>
+    {# --- คอลัมน์ Product Name & Image --- #}
+    <td class="px-6 py-4 whitespace-nowrap">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 h-10 w-10">
+                {% if product.primary_image %}
+                    <img class="h-10 w-10 rounded-md object-cover" src="{{ product.primary_image.url }}" alt="{{ product.title }}">
+                {% else %}
+                    <div class="h-10 w-10 rounded-md bg-gray-200 flex items-center justify-center">
+                        <i class="fas fa-image text-gray-400"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="ml-4">
+                {# ทำให้ชื่อสินค้าเป็นลิงก์ไปยังหน้ารายละเอียดสินค้า (หน้า Public) #}
+                <a href="{% url 'catalogue:product_detail' product.slug %}" target="_blank" class="text-sm font-medium text-gray-900 hover:text-indigo-600" title="View product on storefront">
+                    {{ product.title }}
+                </a>
+            </div>
+        </div>
+    </td>
+
+    {# --- คอลัมน์ Product ID --- #}
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{{ product.id }}</td>
+
+    {# --- คอลัมน์ Price --- #}
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {% with stockrecord=product.primary_stockrecord %}
+            {% if stockrecord and stockrecord.price_excl_tax is not None %}
+                ${{ stockrecord.price_excl_tax|floatformat:2 }}
+            {% else %}
+                <span class="text-gray-400">N/A</span>
+            {% endif %}
+        {% endwith %}
+    </td>
+
+    {# --- คอลัมน์ Stock --- #}
+    <td class="px-6 py-4 whitespace-nowrap">
+         {% with stockrecord=product.primary_stockrecord %}
+            {% if stockrecord and stockrecord.net_stock_level > 0 %}
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                    {{ stockrecord.net_stock_level }} in stock
+                </span>
+            {% else %}
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                    Out of stock
+                </span>
+            {% endif %}
+        {% endwith %}
+    </td>
+    
+    {# --- คอลัมน์ Start Date --- #}
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ product.created_at|date:"M d, Y" }}</td>
+    
+    {# --- คอลัมน์ Actions (แบบ Dropdown) --- #}
+    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+        <div class="relative inline-block text-left">
+            <div>
+                <button type="button" class="action-menu-button inline-flex justify-center w-full rounded-md p-2 text-sm font-medium text-gray-500 hover:bg-gray-100 focus:outline-none" data-menu-id="action-menu-{{ product.pk }}">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+            </div>
+            <div id="action-menu-{{ product.pk }}" class="action-menu origin-top-right absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-10">
+                <div class="py-1" role="none">
+                    <a href="{% url 'dashboard:products:edit' product.pk %}" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1">
+                        <i class="fas fa-pencil-alt w-4 mr-2"></i>{% trans "Edit" %}
+                    </a>
+                    <a href="{% url 'dashboard:products:delete' product.pk %}" class="text-red-600 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1">
+                        <i class="fas fa-trash-alt w-4 mr-2"></i>{% trans "Delete" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </td>
+</tr>

@@ -1,9 +1,16 @@
 FROM noobmaster666/thorpat-django-template 
 
 WORKDIR /app
+USER root
+
+RUN apt-get update && apt-get install -y libpq-dev && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y \
+  postgresql \
+  postgresql-contrib \
+  gcc 
 
 COPY --chown=appuser:appuser . . 
-
+RUN pip install --upgrade pip 
 RUN pip install -r requirements.txt
 # Set environment variables to optimize Python
 ENV PYTHONDONTWRITEBYTECODE=1

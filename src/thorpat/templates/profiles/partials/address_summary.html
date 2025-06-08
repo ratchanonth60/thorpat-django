@@ -1,0 +1,17 @@
+{% comment %}
+Partial template for rendering a single address summary.
+Expects an 'address' object in the context.
+{% endcomment %}
+<div class="block p-4 border rounded-lg cursor-pointer hover:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-600">
+    <label for="address-{{ address.id }}" class="flex items-start">
+        <input type="radio" name="selected_address" value="{{ address.id }}" id="address-{{ address.id }}" class="mr-3 mt-1 h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+        <span class="flex-1">
+            <strong>{{ address.user.get_full_name }}</strong><br>
+            {{ address.address_line_1 }}<br>
+            {% if address.address_line_2 %}{{ address.address_line_2 }}<br>{% endif %}
+            {{ address.city }}, {{ address.state_province }} {{ address.postal_code }}<br>
+            {{ address.country.name }}<br>
+            Phone: {{ address.phone_number|default:"N/A" }}
+        </span>
+    </label>
+</div>

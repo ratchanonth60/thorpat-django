@@ -1,0 +1,28 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load i18n %}
+
+{% block dashboard_title %}{{ page_title }}{% endblock %}
+{% block dashboard_page_title %}{{ page_title }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto">
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="space-y-6">
+            <div>
+                <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700">{{ form.name.label }}</label>
+                {{ form.name }}
+                {% if form.name.errors %}<div class="text-red-500 text-xs mt-1">{{ form.name.errors }}</div>{% endif %}
+            </div>
+            <div class="flex justify-end gap-4 pt-4 border-t">
+                <a href="{% url 'dashboard:partners:list' %}" class="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-md hover:bg-gray-300">
+                    {% trans "Cancel" %}
+                </a>
+                <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700">
+                    {% trans "Save" %}
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock dashboard_content %}

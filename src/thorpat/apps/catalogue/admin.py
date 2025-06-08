@@ -1,7 +1,7 @@
 from django.contrib import admin
 
+
 from .models import (
-    Partner,
     Product,
     ProductAttribute,
     ProductAttributeValue,
@@ -73,13 +73,6 @@ class ProductAttributeAdmin(admin.ModelAdmin):
     list_display = ("name", "code", "product_type")
     list_filter = ("product_type",)
     search_fields = ("name", "code")
-
-
-@admin.register(Partner)
-class PartnerAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug")
-    prepopulated_fields = {"slug": ("name",)}
-    search_fields = ("name",)
 
 
 @admin.register(StockRecord)

@@ -1,60 +1,140 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load static %}
 
 {% block title %}{{ product.title }}{% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
+    
+    {# --- ส่วนบน: รูปภาพและข้อมูลหลัก --- #}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div>
-            <div class="bg-white rounded-lg shadow-md p-4">
+        
+        {# คอลัมน์ซ้าย: รูปภาพ #}
+        <div class="space-y-4">
+            <div class="bg-gray-100 rounded-lg flex items-center justify-center p-4">
                 {% if product.primary_image %}
-                    <img src="{{ product.primary_image.url }}" alt="{{ product.title }}" class="w-full h-auto object-cover rounded-lg">
+                    <img src="{{ product.primary_image.url }}" alt="{{ product.title }}" class="w-full h-auto max-h-96 object-contain rounded-lg">
                 {% else %}
                     <div class="h-96 w-full bg-gray-200 flex items-center justify-center rounded-lg">
                         <span class="text-gray-400">{% trans "No Image" %}</span>
                     </div>
                 {% endif %}
             </div>
+            {# Placeholder for thumbnails #}
+            <div class="grid grid-cols-4 gap-4">
+                <div class="border-2 border-indigo-500 rounded-lg p-1"><img src="{% if product.primary_image %}{{ product.primary_image.url }}{% endif %}" class="w-full h-full object-cover rounded"></div>
+                <div class="border rounded-lg p-1"><img src="{% static 'images/placeholder.png' %}" class="w-full h-full object-cover rounded"></div>
+                <div class="border rounded-lg p-1"><img src="{% static 'images/placeholder.png' %}" class="w-full h-full object-cover rounded"></div>
+                <div class="border rounded-lg p-1"><img src="{% static 'images/placeholder.png' %}" class="w-full h-full object-cover rounded"></div>
+            </div>
         </div>
 
-        <div>
-            <h1 class="text-4xl font-bold text-gray-800 mb-4">{{ product.title }}</h1>
-            
-            <div class="mb-6">
-                {% if product.display_price %}
-                    <span class="text-3xl font-bold text-indigo-600">฿{{ product.display_price|floatformat:2 }}</span>
+        {# คอลัมน์ขวา: ข้อมูลและปุ่ม #}
+        <div class="space-y-4">
+            <div>
+                <span class="text-xs font-semibold bg-green-100 text-green-800 px-2 py-1 rounded-full">New Arrival</span>
+                <h1 class="text-3xl font-bold text-gray-800 mt-2">{{ product.title }}</h1>
+                {# Placeholder for reviews #}
+                <div class="flex items-center mt-1">
+                    <div class="flex text-yellow-400">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                    </div>
+                    <span class="text-sm text-gray-500 ml-2">4.5 (55 Review)</span>
+                </div>
+            </div>
+
+            {# Price #}
+            {% with stockrecord=product.primary_stockrecord %}
+            <div class="text-3xl font-bold text-gray-900">
+                {% if stockrecord.price_excl_tax %}
+                    ${{ stockrecord.price_excl_tax|floatformat:2 }}
+                    <span class="text-xl text-gray-400 line-through ml-2">${{ stockrecord.price_excl_tax|add:20|floatformat:2 }}</span>
+                    <span class="text-sm font-semibold text-red-500 ml-2">(30% OFF)</span>
                 {% else %}
-                    <span class="text-xl text-gray-500">{% trans "Price not available" %}</span>
+                    {% trans "Price not available" %}
                 {% endif %}
             </div>
+            {% endwith %}
 
-            {% if product.is_available_to_buy %}
-                <form action="{% url 'cart:add_to_cart' product.id %}" method="post" class="flex items-center gap-4">
-                    {% csrf_token %}
-                    <div>
-                        <label for="id_quantity" class="sr-only">{% trans "Quantity" %}</label>
-                        {{ add_to_cart_form.quantity }}
+            {# Options (Placeholders) #}
+            <div class="flex space-x-8">
+                <div>
+                    <label class="text-sm font-medium">Colors > Dark</label>
+                    <div class="flex items-center gap-2 mt-2">
+                        <span class="h-6 w-6 rounded-full bg-blue-900 ring-2 ring-offset-1 ring-blue-900"></span>
+                        <span class="h-6 w-6 rounded-full bg-yellow-400"></span>
+                        <span class="h-6 w-6 rounded-full bg-white border"></span>
+                        <span class="h-6 w-6 rounded-full bg-green-500"></span>
                     </div>
-                    <button type="submit" class="bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors">
-                        {% trans "Add to Cart" %}
-                    </button>
-                </form>
-            {% else %}
-                <div class="bg-red-100 text-red-700 p-4 rounded-lg">
-                    {% trans "This product is currently out of stock." %}
                 </div>
-            {% endif %}
-
-            <hr class="my-8">
-
-            <div>
-                <h2 class="text-2xl font-semibold text-gray-800 mb-2">{% trans "Description" %}</h2>
-                <div class="prose max-w-none text-gray-600">
-                    {{ product.description|linebreaks }}
+                <div>
+                    <label class="text-sm font-medium">Size > M</label>
+                     <div class="flex items-center gap-2 mt-2">
+                        <span class="h-8 w-8 flex items-center justify-center text-xs border rounded">S</span>
+                        <span class="h-8 w-8 flex items-center justify-center text-xs border rounded bg-gray-800 text-white">M</span>
+                        <span class="h-8 w-8 flex items-center justify-center text-xs border rounded">XL</span>
+                        <span class="h-8 w-8 flex items-center justify-center text-xs border rounded">XXL</span>
+                    </div>
                 </div>
             </div>
+            
+            {# Add to Cart Form #}
+            {% if product.is_available_to_buy %}
+                <div class="text-green-600 text-sm font-semibold"><i class="fas fa-check-circle mr-1"></i> In Stock</div>
+                <form action="{% url 'cart:add_to_cart' product.id %}" method="post" class="flex items-center gap-4 pt-4 border-t">
+                    {% csrf_token %}
+                    <div>
+                        <label for="id_quantity" class="text-sm font-medium">{% trans "Quantity" %}:</label>
+                        <div class="flex items-center mt-1">
+                            {{ add_to_cart_form.quantity }}
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-orange-500 text-white font-semibold py-3 px-8 rounded-lg hover:bg-orange-600">
+                        <i class="fas fa-shopping-cart mr-2"></i> {% trans "Add to Cart" %}
+                    </button>
+                    <button type="button" class="border p-3 rounded-lg text-gray-500 hover:text-red-500"><i class="far fa-heart"></i></button>
+                </form>
+            {% else %}
+                <div class="text-red-500 font-semibold">{% trans "Out of stock" %}</div>
+            {% endif %}
 
+            {# Description #}
+            <div>
+                <h3 class="font-semibold text-lg">{% trans "Description" %}:</h3>
+                <p class="text-gray-600">{{ product.description|linebreaks }}</p>
+            </div>
+        </div>
+    </div>
+
+    {# --- ส่วนล่าง: รายละเอียดและรีวิว (ใช้ข้อมูล Placeholder) --- #}
+    <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+        {# Item Details #}
+        <div class="bg-gray-50 p-6 rounded-lg">
+            <h3 class="font-bold text-xl mb-4">{% trans "Items Detail" %}</h3>
+            <ul class="space-y-2 text-sm text-gray-700">
+                <li><strong>Product Dimensions:</strong> 53.3 x 40.6 x 6.4 cm; 500 Grams</li>
+                <li><strong>Date First Available:</strong> 22 September 2023</li>
+                <li><strong>Manufacturer:</strong> Greensboro, NC 27401 Prospa-Pal</li>
+                <li><strong>ASIN:</strong> B0CJMML11B</li>
+                <li><strong>Item model number:</strong> 1137AZ</li>
+            </ul>
+        </div>
+        {# Top Review #}
+        <div class="bg-gray-50 p-6 rounded-lg">
+            <h3 class="font-bold text-xl mb-4">{% trans "Top Review From World" %}</h3>
+            <div class="space-y-4">
+                <div class="border-b pb-4">
+                    <p class="font-semibold">Henny K. Mark</p>
+                    <div class="flex text-yellow-400 text-sm my-1"><i class="fas fa-star"></i> ... </div>
+                    <p class="text-sm text-gray-600">Medium thickness. Did not shrink after wash. Good elasticity...</p>
+                </div>
+                <div>
+                    <p class="font-semibold">Jorge Herry</p>
+                    <div class="flex text-yellow-400 text-sm my-1"><i class="fas fa-star"></i> ... </div>
+                    <p class="text-sm text-gray-600">I liked the t-shirt, it's pure cotton & skin friendly, but the size is smaller...</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>

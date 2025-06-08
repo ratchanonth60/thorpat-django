@@ -1,0 +1,55 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load i18n %}
+
+{% block dashboard_content %}
+<div class="bg-white shadow-md rounded-lg p-4 sm:p-6">
+
+    {# --- ส่วนหัวและปุ่ม "Add New" --- #}
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 border-b pb-4">
+        <h2 class="text-xl font-semibold text-gray-800">
+            {% block list_title %}
+                {# Title ของหน้า List จะถูกใส่ที่นี่โดย template ลูก #}
+                Default List Title
+            {% endblock list_title %}
+        </h2>
+        <div>
+            {% block add_new_button %}
+                {# ปุ่ม "Add New" จะถูกใส่ที่นี่โดย template ลูก #}
+            {% endblock add_new_button %}
+        </div>
+    </div>
+
+    {# --- ส่วนควบคุมการค้นหาและ Filter --- #}
+    <div class="mb-4">
+        {% block list_controls %}
+            {# ส่วนควบคุม เช่น ช่องค้นหา, Dropdown จะถูกใส่ที่นี่ #}
+        {% endblock list_controls %}
+    </div>
+
+    {# --- ส่วนของตารางข้อมูล --- #}
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    {% block table_header %}
+                        {# หัวตาราง (th) จะถูกใส่ที่นี่ #}
+                    {% endblock table_header %}
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% block table_body %}
+                    {# เนื้อหาของตาราง (tr, td) จะถูกใส่ที่นี่ #}
+                {% endblock table_body %}
+            </tbody>
+        </table>
+    </div>
+
+    {# --- ส่วนของ Pagination --- #}
+    <div class="mt-4">
+        {% block pagination %}
+            {% include "dashboard/partials/_pagination.html" %}
+        {% endblock pagination %}
+    </div>
+
+</div>
+{% endblock dashboard_content %}

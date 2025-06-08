@@ -28,3 +28,6 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",  # If your static folder is at src/static/
 ]
 STATIC_ROOT = BASE_DIR.parent / "staticfiles"
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR.parent / "mediafiles"

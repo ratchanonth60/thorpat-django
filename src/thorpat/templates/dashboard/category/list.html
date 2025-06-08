@@ -1,0 +1,61 @@
+{% extends "dashboard/base_list.html" %}
+{% load i18n %}
+
+{# --- 1. กำหนด Title ของหน้า --- #}
+{% block list_title %}{% trans "All Categories" %}{% endblock %}
+
+{# --- 2. กำหนดปุ่ม "Add New" --- #}
+{% block add_new_button %}
+    <a href="{% url 'dashboard:categories:add' %}" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 flex items-center shadow-sm">
+        <i class="fas fa-plus mr-2"></i> {% trans "Add New Category" %}
+    </a>
+{% endblock %}
+
+{# --- 3. ส่วนควบคุม (ถ้ามี) --- #}
+{# ในหน้านี้เรายังไม่มี Filter จึงปล่อยบล็อกนี้ว่างไว้ #}
+{% block list_controls %}
+{% endblock %}
+
+{# --- 4. กำหนดหัวตาราง --- #}
+{% block table_header %}
+    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Name" %}</th>
+    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Description" %}</th>
+    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Slug" %}</th>
+    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Actions" %}</th>
+{% endblock %}
+
+{# --- 5. กำหนดเนื้อหาของตาราง --- #}
+{% block table_body %}
+    {% for category in categories %}
+    <tr>
+        <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 h-10 w-10">
+                    {% if category.image %}
+                        <img class="h-10 w-10 rounded-md object-cover" src="{{ category.image.url }}" alt="{{ category.name }}">
+                    {% else %}
+                        <div class="h-10 w-10 rounded-md bg-gray-200 flex items-center justify-center">
+                            <i class="fas fa-image text-gray-400"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">{{ category.name }}</div>
+                </div>
+            </div>
+        </td>
+        <td class="px-6 py-4">
+            <div class="text-sm text-gray-500 truncate" style="max-width: 30ch;">{{ category.description|default:"-" }}</div>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ category.slug }}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+             <a href="{% url 'dashboard:categories:edit' category.pk %}" class="text-indigo-600 hover:text-indigo-900">{% trans "Edit" %}</a>
+             <a href="{% url 'dashboard:categories:delete' category.pk %}" class="text-red-600 hover:text-red-900 ml-4">{% trans "Delete" %}</a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="4" class="px-6 py-4 text-center text-gray-500">{% trans "No categories found." %}</td>
+    </tr>
+    {% endfor %}
+{% endblock %}

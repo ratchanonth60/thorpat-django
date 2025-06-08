@@ -1,48 +1,43 @@
 {% load i18n %}
-<nav class="flex-grow pt-4">
-    {% url 'dashboard:user_info' as user_main_url %}
-    {% url 'order:order_history' as order_history_url %}
-    {% url 'dashboard:user_update' as user_update_url %}
+<nav class="flex-grow pt-4 space-y-1">
+    <a href="{% url 'dashboard:user_info' %}" class="flex items-center py-2.5 px-4 rounded-md transition duration-150 {% if request.resolver_match.view_name == 'dashboard:user_info' %}active-sidebar-link{% else %}hover:bg-gray-700 hover:text-white{% endif %}">
+        <i class="fas fa-tachometer-alt w-6 text-center"></i>
+        <span class="ml-3 nav-text">{% trans "Dashboard" %}</span>
+    </a>
+    <a href="{% url 'order:order_history' %}" class="flex items-center py-2.5 px-4 rounded-md transition duration-150 {% if request.resolver_match.app_name == 'order' %}active-sidebar-link{% else %}hover:bg-gray-700 hover:text-white{% endif %}">
+        <i class="fas fa-receipt w-6 text-center"></i>
+        <span class="ml-3 nav-text">{% trans "My Orders" %}</span>
+    </a>
+
+    <hr class="my-3 border-gray-700">
+    <p class="px-4 text-xs uppercase text-gray-500 font-semibold tracking-wider nav-text">{% trans "Store Management" %}</p>
+
+    <a href="{% url 'dashboard:orders:list' %}" class="flex items-center py-2.5 px-4 rounded-md ...">
+        <i class="fas fa-dolly-flatbed w-6 text-center"></i><span class="ml-3 nav-text">{% trans "Orders" %}</span>
+    </a>
+    <a href="{% url 'dashboard:products:list' %}" class="flex items-center py-2.5 px-4 rounded-md ...">
+        <i class="fas fa-box w-6 text-center"></i><span class="ml-3 nav-text">{% trans "Products" %}</span>
+    </a>
+    <a href="{% url 'dashboard:categories:list' %}" class="flex items-center py-2.5 px-4 rounded-md ...">
+        <i class="fas fa-tags w-6 text-center"></i><span class="ml-3 nav-text">{% trans "Categories" %}</span>
+    </a>
+    <a href="{% url 'dashboard:product_types:list' %}" class="flex items-center py-2.5 px-4 rounded-md ...">
+        <i class="fas fa-cogs w-6 text-center"></i><span class="ml-3 nav-text">{% trans "Product Types" %}</span>
+    </a>
+    <a href="{% url 'dashboard:partners:list' %}" class="flex items-center ...">
+        <i class="fas fa-handshake w-6 text-center"></i><span class="ml-3 nav-text">{% trans "Partners" %}</span>
+    </a>
+    <a href="{% url 'dashboard:customers:list' %}" class="flex items-center py-2.5 px-4 rounded-md ...">
+        <i class="fas fa-users w-6 text-center"></i><span class="ml-3 nav-text">{% trans "Customers" %}</span>
+    </a>
+    <a href="{% url 'dashboard:reports:main' %}" class="flex items-center py-2.5 px-4 rounded-md ...">
+        <i class="fas fa-chart-bar w-6 text-center"></i><span class="ml-3 nav-text">{% trans "Reports" %}</span>
+    </a>
     
-    {# New URLs for Admin Dashboard sections #}
-    {% url 'dashboard:admin_orders_list' as admin_orders_list_url %}
-    {% url 'dashboard:admin_products_list' as admin_products_list_url %}
-    {% url 'dashboard:admin_customers_list' as admin_customers_list_url %}
-    {% url 'dashboard:admin_reports_main' as admin_reports_main_url %}
-
-    <a href="{{ user_main_url }}" class="flex items-center py-2.5 px-4 rounded-md transition duration-150 {% if request.resolver_match.view_name == 'dashboard:user_info' %}active-sidebar-link{% else %}hover:bg-gray-700 hover:text-white{% endif %}">
-        <i class="fas fa-tachometer-alt w-5 h-5 mr-3 text-center"></i>
-        {% trans "Dashboard" %}
-    </a>
-    <a href="{{ order_history_url }}" class="flex items-center py-2.5 px-4 rounded-md transition duration-150 {% if request.resolver_match.app_name == 'order' %}active-sidebar-link{% else %}hover:bg-gray-700 hover:text-white{% endif %}">
-        <i class="fas fa-receipt w-5 h-5 mr-3 text-center"></i>
-        {% trans "My Orders" %}
-    </a>
-
-    <hr class="my-3 border-gray-700">
-    <p class="px-4 text-xs uppercase text-gray-500 font-semibold tracking-wider">{% trans "Store Management" %}</p>
-
-    <a href="{{ admin_orders_list_url }}" class="flex items-center py-2.5 px-4 rounded-md transition duration-150 {% if 'admin_orders' in request.resolver_match.view_name %}active-sidebar-link{% else %}hover:bg-gray-700 hover:text-white{% endif %}">
-        <i class="fas fa-dolly-flatbed w-5 h-5 mr-3 text-center"></i>
-        {% trans "Orders" %}
-    </a>
-    <a href="{{ admin_products_list_url }}" class="flex items-center py-2.5 px-4 rounded-md transition duration-150 {% if 'admin_products' in request.resolver_match.view_name %}active-sidebar-link{% else %}hover:bg-gray-700 hover:text-white{% endif %}">
-        <i class="fas fa-box w-5 h-5 mr-3 text-center"></i>
-        {% trans "Products" %}
-    </a>
-    <a href="{{ admin_customers_list_url }}" class="flex items-center py-2.5 px-4 rounded-md transition duration-150 {% if 'admin_customers' in request.resolver_match.view_name %}active-sidebar-link{% else %}hover:bg-gray-700 hover:text-white{% endif %}">
-        <i class="fas fa-users w-5 h-5 mr-3 text-center"></i>
-        {% trans "Customers" %}
-    </a>
-    <a href="{{ admin_reports_main_url }}" class="flex items-center py-2.5 px-4 rounded-md transition duration-150 {% if 'admin_reports' in request.resolver_match.view_name %}active-sidebar-link{% else %}hover:bg-gray-700 hover:text-white{% endif %}">
-        <i class="fas fa-chart-bar w-5 h-5 mr-3 text-center"></i>
-        {% trans "Reports" %}
-    </a>
-
     <hr class="my-3 border-gray-700">
 
-    <a href="{{ user_update_url }}" class="flex items-center py-2.5 px-4 rounded-md transition duration-150 {% if request.resolver_match.view_name == 'dashboard:user_update' %}active-sidebar-link{% else %}hover:bg-gray-700 hover:text-white{% endif %}">
-        <i class="fas fa-user-cog w-5 h-5 mr-3 text-center"></i>
-        {% trans "Profile Settings" %}
+    <a href="{% url 'dashboard:user_update' %}" class="flex items-center py-2.5 px-4 rounded-md ...">
+        <i class="fas fa-user-cog w-6 text-center"></i>
+        <span class="ml-3 nav-text">{% trans "Profile Settings" %}</span>
     </a>
 </nav>

@@ -1,0 +1,156 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block dashboard_title %}{{ page_title }}{% endblock %}
+{% block dashboard_page_title %}{{ page_title }}{% endblock %}
+
+{% block dashboard_content %}
+<form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        {# --- คอลัมน์ซ้าย (ส่วนอัปโหลดและแสดงผลรูปภาพ) --- #}
+        <div class="lg:col-span-1">
+            <div class="bg-white p-6 rounded-xl shadow-lg h-full">
+                <h3 class="text-lg font-semibold mb-4 text-gray-900">{% trans "Product Photo" %}</h3>
+                
+                {# ใช้ label ครอบทั้งหมดเพื่อให้คลิกเลือกไฟล์ได้ #}
+                <label for="{{ product_form.primary_image.id_for_label }}" class="relative block w-full aspect-w-1 aspect-h-1 border-2 border-dashed border-gray-300 rounded-lg hover:border-indigo-500 cursor-pointer">
+                    
+                    {# 1. ส่วน UI สำหรับอัปโหลด (จะถูกซ่อนเมื่อมีรูป) #}
+                    <div id="uploader-prompt" class="flex flex-col items-center justify-center h-full text-center p-4">
+                        <div class="mx-auto h-12 w-12 text-gray-400">
+                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-full h-full">
+                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+                           </svg>
+                        </div>
+                        <p class="mt-4 text-sm text-gray-600">
+                            <span class="font-semibold text-indigo-600">{% trans "Click to browse" %}</span>
+                        </p>
+                        <p class="text-xs text-gray-500 mt-1">PNG, JPG, GIF</p>
+                    </div>
+
+                    {# 2. ส่วนแสดงรูปภาพที่เลือก (จะแสดงเมื่อมีรูป) #}
+                    <img id="image-preview" src="" alt="Image preview" class="absolute inset-0 w-full h-full object-cover rounded-lg hidden">
+                    
+                    {# input file เดิมที่ถูกซ่อนไว้ #}
+                    {{ product_form.primary_image }}
+                </label>
+            </div>
+        </div>
+
+        {# --- คอลัมน์ขวา (ส่วนกรอกข้อมูล) --- #}
+        <div class="lg:col-span-2 space-y-6">
+            
+            {# Product Information Section #}
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h3 class="text-lg font-semibold mb-6 text-gray-900">{% trans "Product Information" %}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">{{ product_form.title.label }}</label>
+                        {{ product_form.title }}
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-sm font-medium text-gray-700">{{ product_form.product_type.label }}</label>
+                            <a href="{% url 'dashboard:product_types:add' %}" target="_blank" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold">+ {% trans "Add New Type" %}</a>
+                        </div>
+                        {{ product_form.product_type }}
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700">{{ product_form.description.label }}</label>
+                        {{ product_form.description }}
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700">{{ product_form.categories.label }}</label>
+                        <div class="mt-2 space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-md p-2">
+                            {{ product_form.categories }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Pricing & Stock Section #}
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                 <h3 class="text-lg font-semibold mb-6 text-gray-900">{% trans "Pricing & Stock" %}</h3>
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {# Partner Field #}
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-sm font-medium text-gray-400" for="{{ stock_form.partner.id_for_label }}">
+                                {{ stock_form.partner.label }}
+                            </label>
+                            <a href="{% url 'dashboard:partners:add' %}" target="_blank" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">
+                                <i class="fas fa-plus-circle mr-1"></i>{% trans "Add New Partner" %}
+                            </a>
+                        </div>
+                        {{ stock_form.partner }}
+                    </div>
+
+                    {# Partner SKU Field #}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">{{ stock_form.partner_sku.label }}</label>
+                        {{ stock_form.partner_sku }}
+                    </div>
+
+                    {# Price Field #}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">{{ stock_form.price_excl_tax.label }}</label>
+                        {{ stock_form.price_excl_tax }}
+                    </div>
+
+                    {# Stock Field #}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">{{ stock_form.num_in_stock.label }}</label>
+                        {{ stock_form.num_in_stock }}
+                    </div>
+
+                    </div>
+            </div>
+
+            {# Action Buttons #}
+            <div class="flex justify-end gap-4">
+                <a href="{% url 'dashboard:products:list' %}" class="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-md hover:bg-gray-300">
+                    {% trans "Cancel" %}
+                </a>
+                <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700">
+                    {% trans "Create Product" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.getElementById('{{ product_form.primary_image.id_for_label }}');
+    const imagePreview = document.getElementById('image-preview');
+    const uploaderPrompt = document.getElementById('uploader-prompt');
+    
+    if (imageInput) {
+        imageInput.style.display = 'none';
+    }
+
+    if(imageInput && imagePreview && uploaderPrompt) {
+        imageInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    
+                    // --- ลองเปลี่ยนเป็นวิธีนี้ครับ ---
+                    // ใช้ .style.setProperty เพื่อกำหนด !important
+                    imagePreview.style.setProperty('display', 'block', 'important');
+                    uploaderPrompt.style.setProperty('display', 'none', 'important');
+
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});
+</script>
+{% endblock dashboard_content %}

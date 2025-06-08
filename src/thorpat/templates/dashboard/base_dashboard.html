@@ -19,26 +19,41 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #718096; }
         .active-sidebar-link { background-color: #4a5568; color: #ffffff; }
         .active-sidebar-link svg, .active-sidebar-link i { color: #ffffff; }
+        /* +++ CSS สำหรับควบคุมการพับ/กาง Sidebar +++ */
+        #sidebar { transition: width 0.3s ease-in-out; }
+        #main-content { transition: margin-left 0.3s ease-in-out; }
+        #sidebar.sidebar-collapsed .nav-text, #sidebar.sidebar-collapsed .brand-text { display: none; }
+        #sidebar.sidebar-collapsed .logout-text { display: none; }
+        #sidebar.sidebar-collapsed #sidebar-toggle .fa-chevron-left { transform: rotate(180deg); }
     </style>
     {% block extra_head_dashboard %}{% endblock %}
 </head>
 <body class="bg-gray-100 font-sans antialiased {% block dashboard_body_class %}{% endblock %}">
 
 <div class="flex h-screen bg-gray-100">
-    <aside id="sidebar" class="w-64 bg-gray-800 text-gray-400 p-4 space-y-2 hidden md:flex md:flex-col fixed inset-y-0 left-0 z-30 transition-transform duration-300 ease-in-out custom-scrollbar overflow-y-auto">
+    
+    {# กำหนด id="sidebar" และใช้ JS ควบคุมความกว้าง #}
+    <aside id="sidebar" class="bg-gray-800 text-gray-400 p-2 md:flex flex-col fixed inset-y-0 left-0 z-30 custom-scrollbar overflow-y-auto">
         <div class="text-center py-4 border-b border-gray-700">
-            <a href="{% url 'home' %}" class="text-white text-2xl font-semibold tracking-wider">{% trans "Thorpat" %}</a>
+            <a href="{% url 'home' %}" class="text-white text-2xl font-semibold tracking-wider">
+                <i class="fas fa-store"></i> <span class="brand-text">{% trans "Thorpat" %}</span>
+            </a>
         </div>
         {% include "dashboard/partials/_sidebar_nav.html" %}
-        <div class="mt-auto p-4 border-t border-gray-700">
-             <a href="{% url 'account_logout' %}" class="flex items-center py-2.5 px-4 rounded-md transition duration-150 text-red-400 hover:bg-red-600 hover:text-red-100">
-                <i class="fas fa-sign-out-alt w-5 h-5 mr-3 text-center"></i>
-                {% trans "Logout" %}
+        <div class="mt-auto">
+            <a href="{% url 'account_logout' %}" class="flex items-center py-2.5 px-4 rounded-md transition duration-150 text-red-400 hover:bg-red-600 hover:text-red-100">
+                <i class="fas fa-sign-out-alt w-6 text-center"></i>
+                <span class="ml-3 logout-text">{% trans "Logout" %}</span>
             </a>
+            <div class="p-2 border-t border-gray-700 mt-2">
+                 <button id="sidebar-toggle" class="w-full flex items-center justify-center py-2 px-4 rounded-md transition duration-150 text-gray-400 hover:bg-gray-700 hover:text-white">
+                    <i class="fas fa-chevron-left transition-transform duration-300"></i>
+                </button>
+            </div>
         </div>
     </aside>
 
-    <div class="flex-1 flex flex-col overflow-hidden md:ml-64">
+    <div id="main-content" class="flex-1 flex flex-col overflow-hidden">
         <header class="bg-white shadow-sm print:hidden">
             <div class="w-full mx-auto py-3 px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-12">

@@ -28,7 +28,9 @@ class ProductCategory(models.Model):
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
-        return reverse("catalogue:category_detail", kwargs={"slug": self.slug})
+        return reverse(
+            "catalogue:product_list_by_category", kwargs={"category_slug": self.slug}
+        )
 
 
 class ProductType(models.Model):
@@ -238,37 +240,6 @@ class ProductAttributeValue(models.Model):
         return f"{self.product.title} - {self.attribute.name}: {self.value_text or 'N/A'}"  # Simplified
 
 
-class Partner(models.Model):
-    """
-    Represents a partner, which could be a supplier or a warehouse
-    that handles stock for products.
-    In Oscar, this model is more complex and includes users associated with the partner.
-    """
-
-    name = models.CharField(_("Partner Name"), max_length=255, unique=True)
-    slug = models.SlugField(
-        _("Slug"),
-        max_length=255,
-        unique=True,
-        allow_unicode=True,
-        help_text=_("Used for URLs"),
-    )
-    # You might add more fields like contact details, addresses, etc.
-
-    class Meta:
-        verbose_name = _("Partner")
-        verbose_name_plural = _("Partners")
-        ordering = ["name"]
-
-    def __str__(self):
-        return self.name
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name, allow_unicode=True)
-        super().save(*args, **kwargs)
-
-
 class StockRecord(models.Model):
     """
     Represents the stock and pricing information for a product from a specific partner.
@@ -281,7 +252,7 @@ class StockRecord(models.Model):
         verbose_name=_("Product"),
     )
     partner = models.ForeignKey(
-        Partner,
+        "partner.Partner",
         on_delete=models.CASCADE,
         related_name="stockrecords",
         verbose_name=_("Partner"),

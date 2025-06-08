@@ -1,0 +1,15 @@
+{# ไฟล์นี้คือ "เนื้อหา" ทั้งหมดที่จะถูกสลับโดย HTMX #}
+{% load i18n %}
+
+{# ส่วนควบคุม (Filters) ที่มี Live Search #}
+{% include "dashboard/product/partials/list_controls.html" %}
+
+{# ส่วนตาราง #}
+<div class="mt-4">
+    {% include "dashboard/product/partials/product_table.html" %}
+</div>
+
+{# ส่วน Pagination #}
+<div class="mt-4">
+    {% include "dashboard/partials/_pagination.html" %}
+</div>

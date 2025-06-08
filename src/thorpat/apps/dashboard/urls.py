@@ -1,12 +1,6 @@
-from django.urls import path
+from django.urls import include, path
 
 from .users.views import UserInfoView, UserProfileUpdateView, UserRecentActivityView
-from .management_views import (
-    AdminOrderListView,
-    AdminProductListView,
-    AdminCustomerListView,
-    AdminReportView,
-)
 
 app_name = "dashboard"
 
@@ -18,8 +12,29 @@ urlpatterns = [
         UserRecentActivityView.as_view(),
         name="user_recent_activity",
     ),
-    path("orders/", AdminOrderListView.as_view(), name="admin_orders_list"),
-    path("products/", AdminProductListView.as_view(), name="admin_products_list"),
-    path("customers/", AdminCustomerListView.as_view(), name="admin_customers_list"),
-    path("reports/", AdminReportView.as_view(), name="admin_reports_main"),
+    # --- Store Management Sections ---
+    path(
+        "products/",
+        include("thorpat.apps.dashboard.product.urls", namespace="products"),
+    ),
+    path(
+        "product-types/",
+        include("thorpat.apps.dashboard.product_type.urls", namespace="product_types"),
+    ),
+    path(
+        "partners/",
+        include("thorpat.apps.dashboard.partner.urls", namespace="partners"),
+    ),
+    path(
+        "categories/",
+        include("thorpat.apps.dashboard.category.urls", namespace="categories"),
+    ),
+    path("orders/", include("thorpat.apps.dashboard.order.urls", namespace="orders")),
+    path(
+        "customers/",
+        include("thorpat.apps.dashboard.customer.urls", namespace="customers"),
+    ),
+    path(
+        "reports/", include("thorpat.apps.dashboard.report.urls", namespace="reports")
+    ),
 ]

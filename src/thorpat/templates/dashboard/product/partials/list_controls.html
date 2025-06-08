@@ -1,0 +1,54 @@
+{% load i18n %}
+{% load widget_tweaks %}
+
+{# เราจะใช้ form ครอบทั้งหมดเพื่อให้ HTMX ส่งค่า filter ทั้งหมดไปพร้อมกัน #}
+<form method="get" id="product-filter-form" class="space-y-4 md:space-y-0 md:flex md:items-center md:justify-between md:gap-4">
+    
+    {# ส่วนซ้าย: Live Search ที่มองเห็นตลอดเวลา #}
+    <div class="flex-grow relative">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+            <i class="fas fa-search text-gray-400"></i>
+        </span>
+        {# ช่องค้นหานี้จะทำงานแบบ Live Search และส่งค่าจากฟอร์มทั้งหมดไปด้วย #}
+        {{ filter.form.title|add_class:"w-full border-gray-300 rounded-md shadow-sm pl-10"|attr:"hx-get:?"|attr:"hx-trigger:keyup changed delay:500ms, search"|attr:"hx-target:#product-list-container"|attr:"hx-swap:innerHTML"|attr:"hx-indicator:.htmx-indicator"|attr:"hx-include:*" }}
+    </div>
+
+    {# ส่วนขวา: ปุ่ม Filters และปุ่ม Add New #}
+    <div class="flex items-center gap-4">
+        
+        {# ปุ่ม Filters ที่มี Popup ซ่อนอยู่ #}
+        <div class="relative inline-block text-left">
+            <button type="button" id="filter-menu-button" class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none">
+                <i class="fas fa-filter mr-2 text-gray-400"></i>
+                {% trans "Filters" %}
+                <i class="fas fa-chevron-down -mr-1 ml-2 h-5 w-5 text-gray-400"></i>
+            </button>
+
+            <div id="filter-menu" class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-10">
+                <div class="p-4" role="none">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">{{ filter.form.is_public.label }}</label>
+                            {# Dropdown นี้เป็นส่วนหนึ่งของฟอร์มหลัก #}
+                            {{ filter.form.is_public|add_class:"mt-1 w-full" }}
+                        </div>
+                        <div class="flex justify-end pt-2">
+                             {# ปุ่มนี้จะ submit ฟอร์มทั้งหมด #}
+                            <button type="submit" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                                {% trans "Apply" %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# ปุ่ม Add new #}
+        <div class="flex-shrink-0">
+            <a href="{% url 'dashboard:products:add' %}" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 flex items-center shadow-sm">
+                <i class="fas fa-plus mr-2"></i> {% trans "Add new" %}
+            </a>
+        </div>
+    </div>
+    <span class="htmx-indicator"><i class="fas fa-spinner fa-spin text-gray-500"></i></span>
+</form>
