@@ -1,7 +1,7 @@
 from django.db import models
 from django.urls import reverse
-from django.utils.translation import gettext_lazy as _
 from django.utils.text import slugify
+from django.utils.translation import gettext_lazy as _
 
 
 class ProductCategory(models.Model):
