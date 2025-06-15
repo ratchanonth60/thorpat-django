@@ -49,10 +49,25 @@ class ProductCategoryForm(forms.ModelForm):
 
 class ProductForm(forms.ModelForm):
     categories = forms.ModelMultipleChoiceField(
-        queryset=ProductCategory.objects.all(),
+        queryset=ProductCategory.objects.none(),
         widget=forms.CheckboxSelectMultiple,
         required=False,
     )
+
+    def __init__(self, *args, **kwargs):
+        # --- ส่วนที่เพิ่มเข้ามา ---
+        # รับ user ที่ถูกส่งมาจาก View
+        user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+        # ถ้ามี user ถูกส่งเข้ามา (ซึ่งควรจะมีเสมอ)
+        if user:
+            # ให้ทำการกรอง queryset ของฟิลด์ categories
+            # ให้แสดงเฉพาะ Category ที่มีเจ้าของเป็น user คนนี้เท่านั้น
+            self.fields["categories"].queryset = ProductCategory.objects.filter(
+                user=user
+            )
+        # --- จบส่วนที่เพิ่มเข้ามา ---
 
     class Meta:
         model = Product

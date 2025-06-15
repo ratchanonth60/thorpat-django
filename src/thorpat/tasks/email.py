@@ -66,7 +66,7 @@ def send_password_reset_email_task(self, user_pk):
         uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
         token = token_generator.make_token(user)
         reset_link = (
-            f"{settings.FRONTEND_URL}/auth/reset-password-confirm/{uidb64}/{token}/"
+            f"{settings.FRONTEND_URL}/apps/users/password/reset/{uidb64}/{token}/"
         )
 
         context = {

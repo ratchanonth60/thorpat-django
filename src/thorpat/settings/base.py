@@ -170,7 +170,7 @@ SPECTACULAR_SETTINGS = {
     ],
 }
 EMAIL_BACKEND = os.environ.get(
-    "DJANGO_EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+    "DJANGO_EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"
 )  # For development
 EMAIL_HOST = os.environ.get("MAIL_HOST", "localhost")
 EMAIL_PORT = int(os.environ.get("MAIL_PORT", 25))

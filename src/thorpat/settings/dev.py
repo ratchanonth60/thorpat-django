@@ -23,6 +23,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
 ]
 
+LOGIN_REDIRECT_URL = "/"
 
 STATICFILES_DIRS = [
     BASE_DIR / "static",  # If your static folder is at src/static/
@@ -31,3 +32,12 @@ STATIC_ROOT = BASE_DIR.parent / "staticfiles"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR.parent / "mediafiles"
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+PASSWORD_RESET_TIMEOUT = 3600
+
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+)

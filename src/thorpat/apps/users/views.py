@@ -1,7 +1,18 @@
+from allauth.account.forms import SetPasswordForm
+from allauth.account.views import TemplateView
 from django.contrib.auth import get_user_model  # Recommended way to get User model
+from django.contrib.auth.tokens import default_token_generator
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.urls import reverse_lazy
 from django.views import View
+from django.views.generic.edit import FormView
+
+from thorpat.tasks.email import send_password_reset_email_task
+
+from .forms import (
+    CustomPasswordResetRequestForm,
+)
 
 User = get_user_model()
 
@@ -39,4 +50,33 @@ class MobileMenuView(View):
         return render(request, "partials/mobile_menu.html")
 
 
-# +++++++++++++ END OF ADDED VIEWS ++++++++++++++
+class CustomPasswordResetView(FormView):
+    template_name = "account/password_reset.html"  # เราจะสร้าง template นี้
+    form_class = CustomPasswordResetRequestForm
+    success_url = reverse_lazy("users:password_reset_done")
+    token_generator = default_token_generator
+
+    def form_valid(self, form):
+        email = form.cleaned_data["email"]
+        try:
+            user = User.objects.get(email__iexact=email)
+            # เรียกใช้ Celery Task ที่คุณสร้างไว้
+            send_password_reset_email_task.delay(user.pk)
+        except User.DoesNotExist:
+            pass
+        return super().form_valid(form)
+
+
+# View 2: หน้าแจ้งว่าส่งอีเมลแล้ว
+class CustomPasswordResetDoneView(TemplateView):
+    template_name = "account/password_reset_done.html"
+
+
+class CustomPasswordResetConfirmView(FormView):
+    template_name = "account/password_reset_confirm.html"
+    form_class = SetPasswordForm
+    success_url = reverse_lazy("users:password_reset_complete")
+
+
+class CustomPasswordResetCompleteView(TemplateView):
+    template_name = "account/password_reset_complete.html"

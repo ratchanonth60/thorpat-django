@@ -17,7 +17,7 @@ class ProductListView(ListView):
     paginate_by = 12  # Show 12 products per page
 
     def get_queryset(self):
-        queryset = Product.objects.filter(is_public=True)
+        queryset = Product.objects.filter(is_public=True, user=self.request.user)
         category_slug = self.kwargs.get("category_slug")
         if category_slug:
             self.category = get_object_or_404(ProductCategory, slug=category_slug)

@@ -1,18 +1,8 @@
-from urllib.parse import urljoin
-
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter, requests
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
-from allauth.socialaccount.providers.oauth2.views import render
-from dj_rest_auth.registration.views import SocialLoginView
-from django.conf import settings
-from django.urls import reverse
-from django.utils.decorators import method_decorator
 from django.utils.http import urlsafe_base64_decode
-from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import View
 from rest_framework import generics, permissions, serializers, status
 from rest_framework.mixins import Response
-from rest_framework.views import APIView, Request
+from rest_framework.views import Request
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,

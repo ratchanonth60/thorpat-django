@@ -21,14 +21,14 @@ class AdminProductListView(LoginRequiredMixin, ListView):
         return [self.template_name]
 
     def get_queryset(self):
-        queryset = (
-            super()
-            .get_queryset()
-            .prefetch_related("stockrecords")
-            .order_by("-created_at")
-        )
+        # --- เริ่มต้น Query ด้วยการกรองเฉพาะ user ปัจจุบัน ---
+        queryset = super().get_queryset().filter(user=self.request.user)
+
+        # ส่วน Filter เดิมยังคงทำงานได้ตามปกติ
         self.filterset = ProductFilter(self.request.GET, queryset=queryset)
-        return self.filterset.qs
+        return self.filterset.qs.prefetch_related("stockrecords").order_by(
+            "-created_at"
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -43,7 +43,7 @@ class AdminProductCreateView(LoginRequiredMixin, View):
     template_name = "dashboard/product/form.html"
 
     def get(self, request, *args, **kwargs):
-        product_form = ProductForm()
+        product_form = ProductForm(user=request.user)  # ส่ง user ปัจจุบันไปยังฟอร์ม
         stock_form = StockRecordForm()
         context = {
             "product_form": product_form,
@@ -57,8 +57,9 @@ class AdminProductCreateView(LoginRequiredMixin, View):
         stock_form = StockRecordForm(request.POST)
 
         if product_form.is_valid() and stock_form.is_valid():
-            product = product_form.save()  # สามารถ save() ตรงๆ ได้เลย
-
+            product = product_form.save(commit=False)  # สามารถ save() ตรงๆ ได้เลย
+            product.user = self.request.user
+            product.save()
             # +++ เพิ่มบรรทัดนี้เข้ามาเพื่อบันทึก Categories (m2m) +++
             product_form.save(commit=False)
             product_form.save_m2m()
@@ -84,6 +85,11 @@ class AdminProductCreateView(LoginRequiredMixin, View):
 
 class AdminProductUpdateView(LoginRequiredMixin, View):
     template_name = "dashboard/product/form.html"
+
+    def get_object(self):
+        return get_object_or_404(
+            Product, pk=self.kwargs.get("pk"), user=self.request.user
+        )
 
     def get(self, request, *args, **kwargs):
         product = get_object_or_404(Product, pk=self.kwargs.get("pk"))
@@ -129,6 +135,11 @@ class AdminProductDeleteView(LoginRequiredMixin, DeleteView):
     template_name = "dashboard/product/confirm_delete.html"  # เราจะสร้าง template นี้ต่อไป
     success_url = reverse_lazy("dashboard:products:list")
     context_object_name = "product"
+
+    def get_queryset(self):
+        # --- บังคับให้ Query ได้เฉพาะ object ของ user ปัจจุบันเท่านั้น ---
+        # ถ้า user พยายามเข้า URL ของ product คนอื่น จะเจอ 404 Not Found
+        return self.model.objects.filter(user=self.request.user)
 
     def post(self, request, *args, **kwargs):
         messages.success(

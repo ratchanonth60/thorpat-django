@@ -4,6 +4,14 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+class CustomPasswordResetRequestForm(forms.Form):
+    email = forms.EmailField(
+        label="Your email address",
+        max_length=254,
+        widget=forms.EmailInput(attrs={"autocomplete": "email", "class": "..."}),
+    )
+
+
 class UserProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = User

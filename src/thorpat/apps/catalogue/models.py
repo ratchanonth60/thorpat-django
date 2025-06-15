@@ -1,3 +1,7 @@
+from decimal import Decimal
+
+from django.conf import settings
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
@@ -5,6 +9,9 @@ from django.utils.translation import gettext_lazy as _
 
 
 class ProductCategory(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="categories"
+    )
     name = models.CharField(_("Category Name"), max_length=255, db_index=True)
     slug = models.SlugField(_("Slug"), max_length=255, unique=True, allow_unicode=True)
     description = models.TextField(_("Description"), blank=True, null=True)
@@ -70,6 +77,9 @@ class Product(models.Model):
     The base product model.
     """
 
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="products"
+    )
     product_type = models.ForeignKey(
         ProductType,
         on_delete=models.PROTECT,  # Or RESTRICT, ensure type is not deleted if products exist
@@ -137,7 +147,7 @@ class Product(models.Model):
         Returns the first stockrecord. A more sophisticated approach might determine
         the "primary" one based on strategy (e.g., cheapest, most stock).
         """
-        return self.stockrecords.first()
+        return self.stockrecords.first()  # type: ignore
 
     @property
     def display_price(self):
@@ -275,15 +285,28 @@ class StockRecord(models.Model):
         _("Price (excluding tax)"),
         decimal_places=2,
         max_digits=12,
-        validators=[],  # Add MinValueValidator(Decimal('0.00')) if needed
+        validators=[
+            MinValueValidator(Decimal("0.00"))
+        ],  # Add MinValueValidator(Decimal('0.00')) if needed
     )
-    # price_incl_tax = models.DecimalField(...) # If you want to store this too
-    # cost_price = models.DecimalField(...) # Price partner sells to you
+    price_incl_tax = models.DecimalField(
+        _("Price (including tax)"),
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.00"))],
+    )  # Oscar uses this to calculate tax")) # If you want to store this too
+    cost_price = models.DecimalField(
+        _("Cost Price"), max_digits=12, decimal_places=2
+    )  # Price partner sells to you
 
     # Stock information
     num_in_stock = models.PositiveIntegerField(_("Number in Stock"), default=0)
-    # num_allocated = models.PositiveIntegerField(_("Number Allocated"), default=0, null=True, blank=True) # Oscar tracks allocated stock
-    # low_stock_threshold = models.PositiveIntegerField(_("Low Stock Threshold"), blank=True, null=True)
+    num_allocated = models.PositiveIntegerField(
+        _("Number Allocated"), default=0, null=True, blank=True
+    )  # Oscar tracks allocated stock
+    low_stock_threshold = models.PositiveIntegerField(
+        _("Low Stock Threshold"), blank=True, null=True
+    )
 
     date_created = models.DateTimeField(_("Date Created"), auto_now_add=True)
     date_updated = models.DateTimeField(_("Date Updated"), auto_now=True, db_index=True)

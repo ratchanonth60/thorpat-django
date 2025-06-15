@@ -1,9 +1,13 @@
+from django.conf import settings
 from django.db import models
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
 
 class Partner(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="partners"
+    )
     name = models.CharField(_("Partner Name"), max_length=255, unique=True)
     slug = models.SlugField(
         _("Slug"),
