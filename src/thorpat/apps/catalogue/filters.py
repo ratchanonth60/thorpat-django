@@ -1,34 +1,50 @@
 import django_filters
 from django import forms
+from django.db.models import Q
 
-from .models import Product
+from .models import Product, ProductCategory
 
 
 class ProductFilter(django_filters.FilterSet):
-    # lookup_expr='icontains' คือการค้นหาแบบ case-insensitive และหาจากส่วนใดส่วนหนึ่งของคำ
-    title = django_filters.CharFilter(
-        lookup_expr="icontains",
-        label="Search by Product Name",
+    """
+    Filter for the Product model.
+    Allows searching by text and filtering by category.
+    """
+
+    search = django_filters.CharFilter(
+        method="filter_search",
+        label="",
         widget=forms.TextInput(
             attrs={
-                "class": "w-full border-gray-300 rounded-md shadow-sm pl-10",
-                "placeholder": "Search name...",
+                "class": "form-input w-full",
+                "placeholder": "Search by name...",
             }
         ),
     )
 
-    # สร้าง field สำหรับกรองสถานะ is_public (Active/Inactive)
-    # ใช้ ChoiceFilter เพื่อสร้าง dropdown ที่มีตัวเลือก "All", "Yes", "No"
-    is_public = django_filters.ChoiceFilter(
-        label="Status",
-        choices=(
-            ("", "All Statuses"),  # ค่าว่างสำหรับแสดงทั้งหมด
-            (True, "Active / Public"),
-            (False, "Inactive / Not Public"),
-        ),
-        widget=forms.Select(attrs={"class": "border-gray-300 rounded-md shadow-sm"}),
+    # --- MODIFICATION START ---
+    # แก้ไข 'field_name' จาก 'product_type' ที่ผิด ให้เป็น 'categories' ที่ถูกต้อง
+    # เพื่อให้ตัวกรองใช้ ProductCategory ที่เลือกมา ไปกรองข้อมูลในฟิลด์ ManyToMany ที่ชื่อ 'categories' ของ Product model
+    category = django_filters.ModelChoiceFilter(
+        field_name="categories",
+        queryset=ProductCategory.objects.all(),
+        label="Category",
+        empty_label="All Categories",
+        widget=forms.Select(attrs={"class": "form-select w-full"}),
     )
+    # --- MODIFICATION END ---
 
     class Meta:
         model = Product
-        fields = ["title", "is_public"]
+        fields = ["search", "category"]
+
+    def filter_search(self, queryset, name, value):
+        """
+        Custom filter method for the 'search' field.
+        It searches for the given value in both the 'title' and 'description' fields.
+        """
+        if not value:
+            return queryset
+        return queryset.filter(
+            Q(title__icontains=value) | Q(description__icontains=value)
+        )

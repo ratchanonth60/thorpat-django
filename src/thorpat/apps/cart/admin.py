@@ -13,6 +13,7 @@ class CartLineInline(admin.TabularInline):
 
 @admin.register(Cart)
 class CartAdmin(admin.ModelAdmin):
+    # list_display can correctly show properties
     list_display = (
         "id",
         "owner",
@@ -24,13 +25,30 @@ class CartAdmin(admin.ModelAdmin):
     )
     list_filter = ("status", "date_created")
     search_fields = ("owner__username", "owner__email", "id")
-    readonly_fields = ("date_created", "date_merged", "date_submitted", "owner")
+
+    # --- MODIFICATION START ---
+    # Add the properties to readonly_fields to display them in the detail view.
+    readonly_fields = (
+        "date_created",
+        "date_merged",
+        "date_submitted",
+        "owner",
+        "num_lines",
+        "num_items",
+        "total_excl_tax",
+    )
+    # --- MODIFICATION END ---
+
     inlines = [CartLineInline]
+
+    # --- MODIFICATION START ---
+    # Remove the properties from fieldsets.
     fieldsets = (
         (None, {"fields": ("owner", "status")}),
-        ("Totals", {"fields": ("total_excl_tax", "num_items")}),
+        # The "Totals" section is now handled by readonly_fields above.
         ("History", {"fields": ("date_created", "date_merged", "date_submitted")}),
     )
+    # --- MODIFICATION END ---
 
 
 @admin.register(CartLine)

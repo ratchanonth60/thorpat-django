@@ -157,7 +157,7 @@ class Product(models.Model):
         """
         stockrecord = self.primary_stockrecord
         if stockrecord:
-            return stockrecord.price_excl_tax
+            return stockrecord.price_incl_tax
         return None  # Or some default/indicator that price is not available
 
     @property

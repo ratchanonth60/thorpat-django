@@ -1,9 +1,10 @@
 from django.urls import path
 
-from .views import AdminCustomerListView
+from .views import CustomerListView, CustomerDetailView
 
 app_name = "customers"
 
 urlpatterns = [
-    path("", AdminCustomerListView.as_view(), name="list"),
+    path("", CustomerListView.as_view(), name="list"),
+    path("<int:pk>/", CustomerDetailView.as_view(), name="detail"),
 ]

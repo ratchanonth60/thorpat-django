@@ -12,6 +12,7 @@ MIDDLEWARE = [
     "django_htmx.middleware.HtmxMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "thorpat.core.middleware.CartMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     # "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]

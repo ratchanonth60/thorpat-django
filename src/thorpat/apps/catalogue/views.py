@@ -3,53 +3,50 @@ from django.views.generic import DetailView, ListView
 
 from thorpat.apps.cart.forms import AddToCartForm
 
-from .models import Product, ProductCategory
+from .filters import ProductFilter
+from .models import Product
 
 
 class ProductListView(ListView):
-    """
-    A view to display a list of products, optionally filtered by category.
-    """
-
     model = Product
     template_name = "catalogue/product_list.html"
     context_object_name = "products"
-    paginate_by = 12  # Show 12 products per page
+    paginate_by = 12
 
     def get_queryset(self):
-        queryset = Product.objects.filter(is_public=True, user=self.request.user)
-        category_slug = self.kwargs.get("category_slug")
-        if category_slug:
-            self.category = get_object_or_404(ProductCategory, slug=category_slug)
-            queryset = queryset.filter(categories=self.category)
-        else:
-            self.category = None
-        return queryset.order_by("-created_at")
+        # เพิ่ม .prefetch_related('stockrecords', 'images') เข้าไปใน queryset
+        # เพื่อแก้ปัญหา ProgrammingError และ N+1 query problem
+        queryset = (
+            Product.objects.filter(is_public=True)
+            .prefetch_related("stockrecords")
+            .order_by("-created_at")
+        )  # Apply filtering
+        self.filterset = ProductFilter(self.request.GET, queryset=queryset)
+        return self.filterset.qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["category"] = self.category
-        context["categories"] = ProductCategory.objects.all()
+        context["filter"] = self.filterset
         return context
 
 
 class ProductDetailView(DetailView):
-    """
-    A view to display the details of a single product.
-    """
-
     model = Product
     template_name = "catalogue/product_detail.html"
     context_object_name = "product"
-    slug_field = "slug"
-    slug_url_kwarg = "slug"
 
     def get_queryset(self):
-        # Ensure we only show public products
-        return Product.objects.filter(is_public=True)
+        # --- MODIFICATION START ---
+        # แก้ไข Queryset ให้ดึงข้อมูล stockrecords และ images มาล่วงหน้า
+        # เพื่อป้องกันข้อผิดพลาด ProgrammingError ตอนแสดงผล display_price
+        # และช่วยเพิ่มประสิทธิภาพในการโหลดรูปภาพ
+        return (
+            super()
+            .get_queryset()
+            .filter(is_public=True)
+            .prefetch_related("stockrecords")
+        )
+        # --- MODIFICATION END ---
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # Add the 'Add to Cart' form to the context
-        context["add_to_cart_form"] = AddToCartForm()
-        return context
+    def get_object(self, queryset=None):
+        return get_object_or_404(self.get_queryset(), slug=self.kwargs["slug"])

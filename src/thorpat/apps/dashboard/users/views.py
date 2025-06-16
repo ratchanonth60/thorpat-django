@@ -2,6 +2,9 @@ import json
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponse
+from django.shortcuts import render
+from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.views.generic import ListView, TemplateView, UpdateView
 
@@ -104,4 +107,3 @@ class UserRecentActivityView(LoginRequiredMixin, ListView):
         # ถ้าไม่ใช่ HTMX request (เช่น เข้า URL นี้ตรงๆ) อาจจะ render ใน context ของหน้าอื่น หรือ redirect
         # หรือจะใช้ template เดิมก็ได้ ขึ้นอยู่กับว่าต้องการให้ URL นี้เข้าถึงโดยตรงได้หรือไม่
         return [self.template_name]  # หรือ template อื่นที่เหมาะสมถ้าไม่ใช่ HTMX
-

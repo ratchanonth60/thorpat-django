@@ -1,0 +1,21 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+    <div class="max-w-lg mx-auto">
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-bold mb-4 text-slate-800 dark:text-slate-100">ลบหมวดหมู่สินค้า</h2>
+            <p class="mb-4 text-slate-600 dark:text-slate-400">คุณแน่ใจหรือไม่ว่าต้องการลบหมวดหมู่ "{{ object.name }}"?</p>
+            <p class="mb-4 text-sm text-amber-600">การกระทำนี้ไม่สามารถย้อนกลับได้ และสินค้าทั้งหมดในหมวดหมู่นี้จะไม่ถูกลบ แต่จะไม่มีหมวดหมู่กำกับ</p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="flex justify-end mt-6">
+                    <a href="{% url 'dashboard:category-list' %}" class="btn bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 mr-2">ยกเลิก</a>
+                    <button type="submit" class="btn bg-red-500 hover:bg-red-600 text-white">ยืนยันการลบ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
