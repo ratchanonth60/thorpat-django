@@ -13,6 +13,7 @@ APPS_BASE = [
 ]
 
 APPS = [
+    "thorpat",
     "thorpat.apps.users",
     "thorpat.apps.profiles",
     "thorpat.apps.activitylog",

@@ -1,0 +1,57 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load i18n %}
+{% load form_filters %} 
+{% load static %}
+
+{% block dashboard_title %}{{ title }}{% endblock %}
+{% block dashboard_page_title %}{{ page_title }}{% endblock %}
+{% block dashboard_content %}
+<div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+
+    <div class="sm:flex sm:justify-between sm:items-center mb-8">
+        <div class="mb-4 sm:mb-0">
+            <h1 class="text-2xl md:text-3xl text-slate-800 dark:text-slate-100 font-bold">{{ title }}</h1>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 shadow-lg rounded-sm border border-slate-200 dark:border-slate-700 p-6">
+        <form method="post">
+            {% csrf_token %}
+
+            {# Display non-field errors if any #}
+            {% if form.non_field_errors %}
+                <div class="bg-rose-500 text-white p-3 rounded mb-4">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="space-y-4">
+                {# Loop through form fields #}
+                {% for field in form %}
+                    {% if field.name != 'is_staff' and field.name != 'is_superuser' and field.name != 'date_joined' and field.name != 'last_login' %} {# กรองฟิลด์ที่ไม่ต้องการแสดง #}
+                        <div class="sm:flex sm:items-center sm:space-x-4">
+                            <label class="block text-sm font-medium mb-1 sm:w-1/4" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            <div class="sm:w-3/4">
+                                {{ field|add_class:"form-input w-full" }} {# ใช้ templatetag เพื่อเพิ่ม class #}
+                                {% if field.help_text %}
+                                    <div class="text-xs text-slate-500">{{ field.help_text }}</div>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <div class="text-xs text-rose-500">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="flex items-center justify-end mt-6">
+                <a href="{% url 'dashboard:customers:list' %}" class="btn border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-600 dark:text-slate-300 mr-2">{% trans "Cancel" %}</a>
+                <button type="submit" class="btn bg-indigo-500 hover:bg-indigo-600 text-white">{% trans "Save Customer" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock dashboard_content %}
