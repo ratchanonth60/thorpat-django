@@ -1,0 +1,55 @@
+{% load i18n %}
+{% load static %}
+
+{# ตรวจสอบว่ามีสินค้าหรือไม่ ก่อนวนลูป #}
+{% if products %}
+    <div class="grid grid-cols-1 gap-y-10 sm:grid-cols-2 gap-x-6 lg:grid-cols-3 xl:gap-x-8">
+        {% for product in products %}
+        <div class="group relative bg-white dark:bg-slate-800 rounded-lg shadow-md overflow-hidden border border-slate-200 dark:border-slate-700 transition-shadow duration-300 hover:shadow-xl">
+            <a href="{{ product.get_absolute_url }}">
+                <div class="w-full h-56 bg-gray-200 dark:bg-slate-700 overflow-hidden">
+                    {% with primary_image=product.primary_image %}
+                        {% if primary_image %}
+                            <img src="{{ primary_image.image.url }}" alt="{{ product.title|escape }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center bg-gray-300 dark:bg-slate-700">
+                                <span class="text-gray-500 text-center">{% trans "No Image Available" %}</span>
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="p-4">
+                    <h3 class="text-base font-semibold text-gray-800 dark:text-slate-100 truncate" title="{{ product.title|escape }}">
+                        {{ product.title }}
+                    </h3>
+                    <p class="text-gray-500 dark:text-slate-400 text-sm mt-1">
+                        {{ product.product_type.name|default:_("Uncategorized") }}
+                    </p>
+                    <p class="text-lg font-bold text-gray-900 dark:text-white mt-2">
+                        {% if product.display_price %}
+                            <span>฿{{ product.display_price|floatformat:2 }}</span>
+                        {% else %}
+                            <span class="text-sm font-medium text-gray-500">{% trans "Contact for price" %}</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    {# แสดงผลเมื่อไม่พบสินค้า - ไม่ว่าจะจากการกรอง หรือไม่มีสินค้าเลย #}
+    <div class="text-center py-16 bg-white dark:bg-slate-800 rounded-lg shadow-md border border-slate-200 dark:border-slate-700">
+        <h3 class="text-xl font-semibold text-gray-700 dark:text-slate-200">{% trans "No Products Found" %}</h3>
+        <p class="mt-2 text-gray-500 dark:text-slate-400">{% trans "Try adjusting your filters or check back later." %}</p>
+        <a href="{% url 'catalogue:product_list' %}" class="mt-6 inline-block bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-700">
+            {% trans "Clear All Filters" %}
+        </a>
+    </div>
+{% endif %}
+
+{# Pagination (re-included here) #}
+<div class="mt-10">
+    {% include "dashboard/partials/_pagination.html" %}
+</div>
+

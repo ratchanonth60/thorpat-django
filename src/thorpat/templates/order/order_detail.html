@@ -1,65 +1,122 @@
 {% extends "dashboard/base_dashboard.html" %}
 {% load i18n %}
+{% load static %}
+{% load countries %} 
 
 {% block dashboard_title %}{% trans "Order Details" %}{% endblock %}
 {% block dashboard_page_title %}{% blocktrans with order_number=order.number %}Order #{{ order_number }}{% endblocktrans %}{% endblock %}
 
 {% block dashboard_content %}
-<div class="bg-white shadow overflow-hidden sm:rounded-lg">
-    <div class="px-4 py-5 sm:px-6">
-        <div class="flex justify-between items-center">
-            <div>
-                <h3 class="text-lg leading-6 font-medium text-gray-900">{% trans "Order Details" %}</h3>
-                <p class="mt-1 max-w-2xl text-sm text-gray-500">{% blocktrans with date=order.date_placed|date:"d M Y, H:i" %}Placed on {{ date }}{% endblocktrans %}</p>
-            </div>
-            <div>
-                <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                    {{ order.status }}
-                </span>
-            </div>
+<div class="bg-white shadow-md rounded-lg p-4 sm:p-6">
+    {# ส่วนหัวของรายละเอียดคำสั่งซื้อ #}
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-4 border-b border-gray-200">
+        <div>
+            <h3 class="text-xl font-semibold text-gray-900">{% trans "Order Summary" %}</h3>
+            <p class="mt-1 text-sm text-gray-500">{% blocktrans with date=order.date_placed|date:"d M Y, H:i" %}Placed on {{ date }}{% endblocktrans %}</p>
+        </div>
+        <div>
+            {# แสดงสถานะของคำสั่งซื้อ #}
+            <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full
+                {% if order.status == 'Completed' %}bg-green-100 text-green-800
+                {% elif order.status == 'Pending' %}bg-yellow-100 text-yellow-800
+                {% elif order.status == 'Cancelled' %}bg-red-100 text-red-800
+                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ order.status|default:_("N/A") }}
+            </span>
         </div>
     </div>
 
-    <div class="border-t border-gray-200">
-        <ul role="list" class="divide-y divide-gray-200">
+    {# รายการสินค้าในคำสั่งซื้อ #}
+    <h4 class="text-lg font-medium text-gray-900 mb-4">{% trans "Order Items" %}</h4>
+    <div class="mb-6">
+        <ul role="list" class="divide-y divide-gray-200 border-t border-b border-gray-200">
             {% for line in order.lines.all %}
-            <li class="p-4 sm:p-6">
-                <div class="flex items-center">
-                    <div class="w-20 h-20 bg-gray-200 rounded-lg flex-shrink-0"></div>
-                    <div class="ml-4 flex-1">
-                        <p class="font-semibold text-gray-900">{{ line.product_title }}</p>
-                        <p class="text-sm text-gray-500">{% trans "Quantity:" %} {{ line.quantity }}</p>
+            <li class="flex py-4">
+                {# Product Image (ถ้ามี) #}
+                <div class="flex-shrink-0 w-20 h-20 rounded-md overflow-hidden border border-gray-200">
+                    {% if line.product.primary_image %}
+                        {# Corrected image URL access #}
+                        <img src="{{ line.product.primary_image.image.url }}" alt="{{ line.product_title|escape }}" class="w-full h-full object-cover">
+                    {% else %}
+                        {# Placeholder Image ถ้าไม่มีรูปภาพ #}
+                        <div class="w-full h-full flex items-center justify-center bg-gray-100">
+                            <span class="text-gray-400 text-xs text-center">{% trans "No Image" %}</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {# Product Details #}
+                <div class="ml-4 flex flex-1 flex-col">
+                    <div>
+                        <div class="flex justify-between text-base font-medium text-gray-900">
+                            <h3>
+                                <a href="{% url 'catalogue:product_detail' line.product.slug %}">{{ line.product_title }}</a>
+                            </h3>
+                            <p class="ml-4">฿{{ line.line_price_excl_tax|floatformat:2 }}</p>
+                        </div>
+                        <p class="mt-1 text-sm text-gray-500">{% trans "Quantity:" %} {{ line.quantity }}</p>
+                        {# Optional: Add product attributes if available in line object #}
                     </div>
-                    <p class="font-semibold text-gray-900">฿{{ line.line_price_excl_tax|floatformat:2 }}</p>
+                    {# Optional: Add action buttons per line item (e.g. return) #}
                 </div>
             </li>
             {% endfor %}
         </ul>
     </div>
     
-    <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <h4 class="text-base font-medium text-gray-900 mb-2">{% trans "Shipping Address" %}</h4>
-                <address class="text-sm text-gray-600 not-italic">
-                    {{ order.shipping_address.first_name }} {{ order.shipping_address.last_name }}<br>
-                    {{ order.shipping_address.address_line_1 }}<br>
-                    {% if order.shipping_address.address_line_2 %}{{ order.shipping_address.address_line_2 }}<br>{% endif %}
-                    {{ order.shipping_address.city }}, {{ order.shipping_address.postal_code }}<br>
-                    {{ order.shipping_address.country_code }}
+    {# ข้อมูลการจัดส่งและสรุปยอดรวม #}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        {# Shipping Address #}
+        <div>
+            <h4 class="text-lg font-medium text-gray-900 mb-2">{% trans "Shipping Address" %}</h4>
+            {% if order.shipping_address %}
+                <address class="text-sm text-gray-600 not-italic space-y-1">
+                    <p>{{ order.shipping_address.first_name }} {{ order.shipping_address.last_name }}</p>
+                    <p>{{ order.shipping_address.address_line_1 }}</p>
+                    {% if order.shipping_address.address_line_2 %}<p>{{ order.shipping_address.address_line_2 }}</p>{% endif %}
+                    <p>{{ order.shipping_address.city }}, {{ order.shipping_address.postal_code }}</p>
+                    <p>{{ order.shipping_address.country_code }}</p> {# country_name filter is now loaded #}
                 </address>
+            {% else %}
+                <p class="text-sm text-gray-500">{% trans "No shipping address provided." %}</p>
+            {% endif %}
+        </div>
+
+        {# Order Totals Summary #}
+        <div class="space-y-2">
+            <h4 class="text-lg font-medium text-gray-900 mb-2">{% trans "Order Totals" %}</h4>
+            <div class="flex justify-between text-sm">
+                <dt class="text-gray-500">{% trans "Subtotal" %}</dt>
+                <dd class="text-gray-900">฿{{ order.total_excl_tax|floatformat:2 }}</dd>
             </div>
-            <div class="space-y-2">
-                <div class="flex justify-between text-sm">
-                    <dt class="text-gray-500">{% trans "Subtotal" %}</dt>
-                    <dd class="text-gray-900">฿{{ order.total_excl_tax|floatformat:2 }}</dd>
-                </div>
-                <div class="flex justify-between text-base font-medium text-gray-900 border-t pt-2 mt-2">
-                    <dt>{% trans "Total" %}</dt>
-                    <dd>฿{{ order.total_excl_tax|floatformat:2 }}</dd>
-                </div>
+            {# เพิ่ม Tax ถ้ามีข้อมูล Tax #}
+            {% if order.total_tax and order.total_tax > 0 %}
+            <div class="flex justify-between text-sm">
+                <dt class="text-gray-500">{% trans "Tax" %}</dt>
+                <dd class="text-gray-900">฿{{ order.total_tax|floatformat:2 }}</dd>
+            </div>
+            {% endif %}
+            {# เพิ่ม Shipping Cost ถ้ามีข้อมูล Shipping Cost #}
+            {% if order.shipping_incl_tax and order.shipping_incl_tax > 0 %}
+            <div class="flex justify-between text-sm">
+                <dt class="text-gray-500">{% trans "Shipping" %}</dt>
+                <dd class="text-gray-900">฿{{ order.shipping_incl_tax|floatformat:2 }}</dd>
+            </div>
+            {% endif %}
+            {# ยอดรวมทั้งหมด (รวมภาษีและค่าจัดส่ง) #}
+            <div class="flex justify-between text-base font-medium text-gray-900 border-t pt-2 mt-2">
+                <dt>{% trans "Order Total" %}</dt>
+                <dd>฿{{ order.total_incl_tax|floatformat:2 }}</dd>
             </div>
         </div>
     </div>
+
+    {# ปุ่มกลับไปหน้ารายการคำสั่งซื้อ #}
+    <div class="mt-6 pt-4 border-t border-gray-200 text-right">
+        <a href="{% url 'orders:list' %}" class="btn bg-gray-200 hover:bg-gray-300 text-gray-800">
+            &larr; {% trans "Back to Orders" %}
+        </a>
+    </div>
 </div>
-{% endblock %}
+{% endblock dashboard_content %}
+

@@ -39,7 +39,7 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <a href="{% url 'order:order_detail' order.number %}" class="text-indigo-600 hover:text-indigo-900">{% trans "View Details" %}</a>
+                            <a href="{% url 'orders:detail' order.number %}" class="text-indigo-600 hover:text-indigo-900">{% trans "View Details" %}</a>
                         </td>
                     </tr>
                     {% endfor %}

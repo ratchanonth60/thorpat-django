@@ -1,0 +1,58 @@
+{# src/thorpat/templates/checkout/partials/_new_address_form.html #}
+{% load i18n %}
+{% load form_filters %}
+
+{# HTMX Form: จะส่งข้อมูลไปที่ checkout:add_shipping_address_htmx #}
+{# ถ้าสำเร็จ, server จะส่ง hx-redirect header เพื่อไปหน้า payment #}
+{# ถ้าไม่สำเร็จ, server จะส่งฟอร์มกลับมาพร้อม error #}
+<form hx-post="{% url 'checkout:add_shipping_address_htmx' %}"
+      hx-target="#new-address-form-section" {# Target ตัวเองเพื่อ update form with errors หรือ replace form #}
+      hx-swap="outerHTML" {# Replace ทั้ง form block #}
+      class="bg-white p-6 rounded-lg shadow-md border border-gray-200 space-y-4"
+      id="new-address-form">
+    <h2 class="text-2xl font-semibold mb-4 text-gray-800">{% trans "Or Add a New Address" %}</h2> {# เพิ่มหัวข้อใน partial #}
+    {% csrf_token %}
+    
+    {# แสดง non-field errors ของฟอร์ม #}
+    {% if form.non_field_errors %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong class="font-bold">{% trans "Error!" %}</strong>
+            <span class="block sm:inline">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </span>
+        </div>
+    {% endif %}
+    
+    {# วนลูปแสดงฟิลด์ทั้งหมดของฟอร์ม #}
+    {% for field in form %}
+        <div>
+            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                {{ field.label }}
+            </label>
+            <div class="mt-1">
+                {# ใช้ form_filters เพื่อเพิ่ม class และ placeholder #}
+                {# สามารถเพิ่ม HTMX validation per field ได้ที่นี่ หากต้องการ #}
+                {# ตัวอย่าง: |attr:"hx-post:/some/validation/url/"|attr:"hx-trigger:changed delay:500ms"|attr:"hx-target:#{{ field.id_for_label }}-error"|attr:"hx-swap:innerHTML" #}
+                {{ field|add_class:"form-input block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"|add_placeholder:field.label }}
+            </div>
+            {# แสดงข้อผิดพลาดเฉพาะฟิลด์ #}
+            {% if field.errors %}
+                <div class="text-red-500 text-xs mt-1">
+                    {% for error in field.errors %}<p>{{ error }}</p>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+    
+    {# ปุ่มสำหรับบันทึกและใช้ที่อยู่ใหม่ #}
+    <button type="submit" class="w-full bg-green-600 text-white rounded-lg px-6 py-3 font-semibold hover:bg-green-700 transition-colors"
+            hx-indicator="#new-address-spinner"> {# แสดง spinner เมื่อโหลด #}
+        {% trans "Save and Use This Address" %}
+        <span id="new-address-spinner" class="htmx-indicator ml-2">
+            <i class="fas fa-spinner fa-spin"></i>
+        </span>
+    </button>
+</form>
+

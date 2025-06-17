@@ -1,65 +1,86 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load form_filters %}
 
 {% block title %}{% trans "Checkout - Shipping Address" %}{% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-gray-800 mb-6">{% trans "Select Shipping Address" %}</h1>
+    {# ส่วนหัวของหน้า Checkout #}
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">{% trans "Checkout" %}</h1>
 
+    {# แถบแสดงสถานะขั้นตอนการ Checkout #}
+    <div class="flex justify-center items-center mb-8">
+        <div class="flex items-center text-indigo-600">
+            <span class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold mr-2">1</span>
+            <span class="font-medium">{% trans "Shipping" %}</span>
+        </div>
+        <div class="flex-1 border-t-2 border-gray-300 mx-4"></div>
+        <div class="flex items-center text-gray-500">
+            <span class="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold mr-2">2</span>
+            <span class="font-medium">{% trans "Payment" %}</span>
+        </div>
+        <div class="flex-1 border-t-2 border-gray-300 mx-4"></div>
+        <div class="flex items-center text-gray-500">
+            <span class="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold mr-2">3</span>
+            <span class="font-medium">{% trans "Confirmation" %}</span>
+        </div>
+    </div>
+
+    {# Grid Layout สำหรับ Saved Addresses และ New Address Form #}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
-        {# Section for Saved Addresses #}
-        <div>
-            <h2 class="text-2xl font-semibold mb-4">{% trans "Your Saved Addresses" %}</h2>
+        {# ส่วนสำหรับ Saved Addresses #}
+        <div id="saved-addresses-section"> {# เพิ่ม ID สำหรับ HTMX targeting #}
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800">{% trans "Your Saved Addresses" %}</h2>
             {% if addresses %}
-            <form action="{% url 'checkout:shipping_address' %}" method="post" id="select-address-form">
-                {% csrf_token %}
-                <div class="space-y-4">
-                    {% for address in addresses %}
-                        {% include "profiles/partials/address_summary.html" with address=address %}
-                    {% endfor %}
-                </div>
-                <button type="submit" form="select-address-form" class="mt-6 w-full bg-indigo-600 text-white rounded-lg px-6 py-3 font-semibold hover:bg-indigo-700">
-                    {% trans "Use Selected Address" %}
-                </button>
-            </form>
+                {# HTMX Form: จะส่งข้อมูลไปที่ checkout:select_shipping_address_htmx #}
+                {# ถ้าสำเร็จ, server จะส่ง hx-redirect header เพื่อไปหน้า payment #}
+                {# ถ้าไม่สำเร็จ, server จะส่งฟอร์มกลับมาพร้อม error (ซึ่งไม่น่ามีสำหรับฟอร์มนี้) #}
+                <form hx-post="{% url 'checkout:select_shipping_address_htmx' %}"
+                      hx-target="#saved-addresses-section" {# Target ตัวเองเพื่อ update error หรือ replace form #}
+                      hx-swap="outerHTML" {# Replace ทั้ง form ถ้ามี error (หรือสามารถใช้ afterend เพื่อแสดงข้อความ) #}
+                      class="bg-white p-6 rounded-lg shadow-md border border-gray-200"
+                      id="select-address-form">
+                    {% csrf_token %}
+                    <div class="space-y-4">
+                        {% for address in addresses %}
+                            {# Include partial template for address summary #}
+                            {# ต้องแน่ใจว่า address_summary.html มี radio button สำหรับเลือก และใช้ name="selected_address" #}
+                            {% include "profiles/partials/address_summary.html" with address=address form_prefix="address_select" %}
+                        {% endfor %}
+                    </div>
+                    <button type="submit" class="mt-6 w-full bg-indigo-600 text-white rounded-lg px-6 py-3 font-semibold hover:bg-indigo-700 transition-colors"
+                            hx-indicator="#select-address-spinner"> {# แสดง spinner เมื่อโหลด #}
+                        {% trans "Use Selected Address" %}
+                        <span id="select-address-spinner" class="htmx-indicator ml-2">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </span>
+                    </button>
+                </form>
             {% else %}
-            <p class="text-gray-600">{% trans "You have no saved addresses." %}</p>
+                <p class="text-gray-600 bg-white p-6 rounded-lg shadow-md border border-gray-200">{% trans "You have no saved addresses." %}</p>
             {% endif %}
         </div>
 
-        {# Section for New Address Form #}
-        <div>
-            <h2 class="text-2xl font-semibold mb-4">{% trans "Or Add a New Address" %}</h2>
-            <form action="{% url 'checkout:shipping_address' %}" method="post" id="new-address-form" class="bg-white p-6 rounded-lg shadow-md space-y-4">
-                {% csrf_token %}
-                
-                {# Display non-field errors if any #}
-                {% if form.non_field_errors %}
-                    <div class="text-red-500 text-sm p-2 bg-red-50 rounded-md">{{ form.non_field_errors }}</div>
-                {% endif %}
-                
-                {# Loop through form fields #}
-                {% for field in form %}
-                <div>
-                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
-                    <div class="mt-1">
-                        {{ field }}
-                    </div>
-                    {% if field.errors %}
-                        <div class="text-red-500 text-xs mt-1">
-                            {% for error in field.errors %}<p>{{ error }}</p>{% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-                
-                <button type="submit" form="new-address-form" class="w-full bg-green-600 text-white rounded-lg px-6 py-3 font-semibold hover:bg-green-700">
-                    {% trans "Save and Use This Address" %}
-                </button>
-            </form>
+        {# ส่วนสำหรับ New Address Form - เนื้อหาจะถูกโหลดจาก Partial Template _new_address_form.html #}
+        <div id="new-address-form-section"> 
+            {% include "checkout/partials/_new_address_form.html" with form=form %}
         </div>
     </div>
 </div>
+
+{# CSS สำหรับ HTMX indicators #}
+<style>
+    .htmx-indicator {
+        display: none;
+    }
+    .htmx-request .htmx-indicator {
+        display: inline-block;
+    }
+    .htmx-request.htmx-indicator {
+        display: inline-block;
+    }
+</style>
 {% endblock %}
+

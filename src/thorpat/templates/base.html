@@ -5,50 +5,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Thorpat Django{% endblock %}</title>
+    <title>{% block title %}{% trans "Thorpat Django" %}{% endblock %}</title> {# ทำเครื่องหมาย title เป็น translatable #}
+    
+    {# โหลดฟอนต์ Inter จาก Google Fonts #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    {# โหลด Tailwind CSS จาก CDN #}
+    {# สำหรับ production ควรติดตั้ง Tailwind locally และ purge CSS เพื่อลดขนาดไฟล์ #}
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    
+    {# โหลด HTMX จาก CDN #}
     <script src="https://unpkg.com/htmx.org@1.9.10" xintegrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
-    <meta name="csrf-token" content="{{ csrf_token }}"> {# For htmx_csrf_config.js #}
+    
+    {# สำหรับ HTMX CSRF Configuration - ใช้ meta tag เพื่อส่ง csrf token #}
+    <meta name="csrf-token" content="{{ csrf_token }}"> 
+    
+    {# Block สำหรับการเพิ่ม meta tags หรือ CSS/JS พิเศษใน head จากเทมเพลตลูก #}
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-gray-100 font-sans leading-normal tracking-normal {% block body_class %}{% endblock %}">
+{# ตั้งค่า font-sans สำหรับ Inter, และ class สำหรับ body โดยรวม #}
+<body class="bg-gray-100 font-inter antialiased leading-normal tracking-normal {% block body_class %}{% endblock %}">
 
+    {# ส่วนของ Navigation Bar #}
     <nav class="bg-white shadow-sm print:hidden">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center">
+                    {# Brand/Logo Link #}
                     <a href="{% url 'home' %}" class="text-xl font-semibold text-indigo-600">
                         Thorpat
                     </a>
                 </div>
+                
+                {# Desktop Navigation (Hidden on small screens) #}
                 <div class="hidden md:block">
                     <div class="ml-10 flex items-center space-x-4">
                         {% if user.is_authenticated %}
+                            {# ลิงก์ Dashboard สำหรับผู้ใช้ที่เข้าสู่ระบบ #}
                             <a href="{% url 'dashboard:user_info' %}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Dashboard" %}</a>
+                            {# ข้อความต้อนรับพร้อม username #}
                             <span class="text-gray-700">{% blocktrans with username=user.username %}Hi, {{ username }}!{% endblocktrans %}</span>
+                            {# ฟอร์ม Logout #}
                             <form method="post" action="{% url 'account_logout' %}" class="inline">
                                 {% csrf_token %}
                                 <button type="submit" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Logout" %}</button>
                             </form>
                         {% else %}
+                            {# ลิงก์ Login สำหรับผู้ใช้ที่ยังไม่เข้าสู่ระบบ #}
                             <a href="{% url 'account_login' %}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Login" %}</a>
+                            {# ลิงก์ Sign Up #}
                             <a href="{% url 'account_signup' %}" class="text-indigo-600 hover:text-indigo-800 bg-indigo-100 px-3 py-2 rounded-md text-sm font-medium">{% trans "Sign Up" %}</a>
                         {% endif %}
 
-                        <!-- Cart Icon -->
+                        {# รวม Cart Icon / Link - ใช้ include partial เพื่อความสะอาด #}
                         {% include "cart/partials/cart_link.html" %}
                     </div>
                 </div>
+                
+                {# Mobile Menu Button (Hidden on large screens) #}
                 <div class="-mr-2 flex md:hidden">
                     <button type="button" class="bg-white inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" aria-controls="mobile-menu" aria-expanded="false"
-                            hx-get="{% url 'users:mobile_menu' %}"
+                            hx-get="{% url 'users:mobile_menu' %}" {# สมมติว่ามี URL 'users:mobile_menu' สำหรับ HTMX #}
                             hx-target="#mobile-menu-container"
                             hx-swap="innerHTML"
                             id="mobile-menu-button">
                         <span class="sr-only">{% trans "Open main menu" %}</span>
+                        {# ไอคอนเมนู (Hamburger) #}
                         <svg class="block h-6 w-6" id="icon-menu" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
+                        {# ไอคอนปิด (X) - ซ่อนไว้ #}
                         <svg class="hidden h-6 w-6" id="icon-close" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -56,10 +84,28 @@
                 </div>
             </div>
         </div>
+        {# คอนเทนเนอร์สำหรับ Mobile Menu ที่โหลดด้วย HTMX #}
         <div class="md:hidden hidden" id="mobile-menu-container">
             {# This container will be filled by HTMX #}
         </div>
     </nav>
+
+    {# ส่วนสำหรับแสดงผล Django Messages (ข้อความแจ้งเตือน) #}
+    {% if messages %}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+            {% for message in messages %}
+                <div class="p-3 rounded-md mb-2
+                    {% if message.tags == "success" %}bg-emerald-100 text-emerald-800
+                    {% elif message.tags == "info" %}bg-blue-100 text-blue-800
+                    {% elif message.tags == "warning" %}bg-amber-100 text-amber-800
+                    {% elif message.tags == "error" %}bg-rose-100 text-rose-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}"
+                    role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 
     <main>
         {% block content %}
@@ -71,7 +117,9 @@
     </footer>
 
     {% block extra_scripts %}
+    {# โหลด JavaScript หลักของ base layout #}
     <script src="{% static 'js/base_layout.js' %}"></script>
+    {# โหลด JavaScript สำหรับ HTMX CSRF config #}
     <script src="{% static 'js/htmx_csrf_config.js' %}"></script>
     {% endblock %}
 </body>

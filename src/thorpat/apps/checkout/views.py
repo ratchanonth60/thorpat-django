@@ -1,9 +1,11 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
-from django.views import View
-from django.views.generic import TemplateView
+from django.views import View  # Base class for HTMX views
+from django.views.generic import TemplateView  # Base class for TemplateView
 
 from thorpat.apps.cart.utils import get_or_create_cart
 from thorpat.apps.order.utils import OrderCreator, OrderPlacementError
@@ -12,21 +14,18 @@ from thorpat.apps.profiles.models import Address
 from .forms import ShippingAddressForm
 
 
+# Main View สำหรับแสดงหน้า Shipping Address (GET request)
 class CheckoutShippingAddressView(LoginRequiredMixin, View):
     template_name = "checkout/shipping_address.html"
 
     def get(self, request, *args, **kwargs):
-        # Get user's existing addresses
-        existing_addresses = Address.objects.filter(user=request.user)
-
-        # Get the current cart to check if it's empty
         cart = get_or_create_cart(request)
         if cart.is_empty:
             messages.warning(request, _("Your cart is empty."))
             return redirect("cart:cart_detail")
 
-        # Form for entering a new address
-        form = ShippingAddressForm()
+        existing_addresses = Address.objects.filter(user=request.user)
+        form = ShippingAddressForm()  # ฟอร์มสำหรับที่อยู่ใหม่
 
         context = {
             "addresses": existing_addresses,
@@ -34,79 +33,78 @@ class CheckoutShippingAddressView(LoginRequiredMixin, View):
         }
         return render(request, self.template_name, context)
 
+
+# HTMX View สำหรับการเลือกที่อยู่ที่มีอยู่แล้ว
+class SelectShippingAddressHTMXView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
-        cart = get_or_create_cart(request)
-        if cart.is_empty:
-            return redirect("cart:cart_detail")
+        selected_address_id = request.POST.get(
+            "selected_address"
+        )  # ชื่อจาก radio button ใน address_summary.html
 
-        # Case 1: User selected an existing address
-        selected_address_id = request.POST.get("selected_address")
-        if selected_address_id:
-            try:
-                address = Address.objects.get(id=selected_address_id, user=request.user)
-                # Store the chosen address ID in the session to use in the next steps
-                request.session["checkout_shipping_address_id"] = address.id
-                # Redirect to the next step (e.g., shipping method or payment)
-                # For now, we'll create a placeholder URL 'checkout:payment'
-                return redirect("checkout:payment_method")
-            except Address.DoesNotExist:
-                messages.error(request, _("Invalid address selected."))
-                return redirect("checkout:shipping_address")
+        if not selected_address_id:
+            messages.error(request, _("Please select an address."))
+            # ถ้าไม่เลือกอะไรมา ควรจะ re-render ส่วน addresses หรือแค่แสดง error
+            # ในที่นี้ เราจะส่ง 400 เพื่อให้ HTMX ไม่ทำ redirect
+            response = HttpResponse(_("Please select an address."), status=400)
+            response["HX-Refresh"] = "true"  # Force browser refresh to show message
+            return response
 
-        # Case 2: User submitted the form for a new address
+        try:
+            address = Address.objects.get(id=selected_address_id, user=request.user)
+            request.session["checkout_shipping_address_id"] = address.id
+            messages.success(request, _("Shipping address selected."))
+
+            # ส่ง HTMX-Redirect header เพื่อไปยังขั้นตอนต่อไป
+            response = HttpResponse()
+            response["HX-Redirect"] = reverse_lazy("checkout:payment_method")
+            return response
+
+        except Address.DoesNotExist:
+            messages.error(request, _("Invalid address selected."))
+            response = HttpResponse(_("Invalid address selected."), status=400)
+            response["HX-Refresh"] = "true"
+            return response
+
+
+# HTMX View สำหรับการเพิ่มที่อยู่ใหม่
+class AddShippingAddressHTMXView(LoginRequiredMixin, View):
+    template_name_form_only = (
+        "checkout/partials/_new_address_form.html"  # Partial template สำหรับฟอร์ม
+    )
+
+    def post(self, request, *args, **kwargs):
         form = ShippingAddressForm(request.POST)
+
         if form.is_valid():
-            # Create a new address but don't save to DB yet
             new_address = form.save(commit=False)
-            new_address.user = request.user  # Assign the current user
+            new_address.user = request.user
             new_address.save()
 
-            # Store the new address ID in the session
             request.session["checkout_shipping_address_id"] = new_address.id
-            messages.success(request, _("New address has been saved."))
-            return redirect("checkout:payment_method")  # Redirect to next step
+            messages.success(request, _("New address saved and selected."))
 
-        # If form is invalid, re-render the page with errors
-        existing_addresses = Address.objects.filter(user=request.user)
-        context = {"addresses": existing_addresses, "form": form}
-        return render(request, self.template_name, context)
-
-
-class CheckoutPaymentMethodView(LoginRequiredMixin, View):
-    """
-    Placeholder view for the next step in checkout.
-    """
-
-    def get(self, request, *args, **kwargs):
-        # A real implementation would show payment options (Credit Card, COD, etc.)
-        # and would lead to the order confirmation page.
-
-        # For now, this is just a placeholder to show the flow.
-
-        # Retrieve the selected address from session to confirm it's being passed
-        shipping_address_id = request.session.get("checkout_shipping_address_id")
-        if not shipping_address_id:
-            messages.error(request, _("Please select a shipping address first."))
-            return redirect("checkout:shipping_address")
-
-        address = Address.objects.get(id=shipping_address_id)
-        cart = get_or_create_cart(request)
-
-        # Here you would typically process payment and create the order.
-        # We will build this "Order Placement" logic in the next step.
-
-        return render(
-            request, "checkout/payment_method.html", {"address": address, "cart": cart}
-        )
+            # ส่ง HTMX-Redirect header เพื่อไปยังขั้นตอนต่อไป
+            response = HttpResponse()
+            response["HX-Redirect"] = reverse_lazy("checkout:payment_method")
+            return response
+        else:
+            # ถ้าฟอร์มไม่ถูกต้อง ให้ render เฉพาะฟอร์มกลับไปพร้อม error
+            # HTMX จะทำการ swap content ของเป้าหมายด้วย HTML ที่ส่งกลับมา
+            context = {
+                "form": form,
+            }
+            return render(
+                request, self.template_name_form_only, context, status=400
+            )  # ส่ง status 400 ด้วย
 
 
+# View สำหรับหน้าวิธีการชำระเงิน
 class CheckoutPaymentMethodView(LoginRequiredMixin, View):
     """
     Handles the display of payment methods and the final order placement.
     """
 
     def get(self, request, *args, **kwargs):
-        # ... (GET method remains the same) ...
         shipping_address_id = request.session.get("checkout_shipping_address_id")
         if not shipping_address_id:
             messages.error(request, _("Please select a shipping address first."))
@@ -165,6 +163,7 @@ class CheckoutPaymentMethodView(LoginRequiredMixin, View):
         return redirect("checkout:thank_you", order_number=order.number)
 
 
+# View สำหรับหน้ายืนยันคำสั่งซื้อ
 class OrderConfirmationView(TemplateView):
     """
     Displays a thank-you page after a successful order.

@@ -1,3 +1,5 @@
+from allauth.account.forms import render_to_string
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.generic import DetailView, ListView
 
@@ -29,6 +31,23 @@ class ProductListView(ListView):
         context["filter"] = self.filterset
         context["cart_product_form"] = AddToCartForm()
         return context
+
+
+class ProductListHTMXView(ProductListView):  # สามารถสืบทอดจาก ProductListView ได้เลย
+    # template_name จะถูก override ใน get()
+
+    def get(self, request, *args, **kwargs):
+        # เรียก get_queryset และ get_context_data จาก parent class
+        self.object_list = self.get_queryset()
+        context = self.get_context_data()
+
+        # Render เฉพาะส่วนของ Grid และ Pagination
+        html = render_to_string(
+            "catalogue/partials/_product_grid.html",  # นี่คือ partial template ใหม่
+            context,
+            request=request,
+        )
+        return HttpResponse(html)
 
 
 class ProductDetailView(DetailView):

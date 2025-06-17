@@ -1,40 +1,132 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load static %} {# เพิ่ม load static หากต้องการใช้รูปภาพ #}
 
 {% block title %}{% trans "Checkout - Review & Pay" %}{% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-gray-800 mb-6">{% trans "Review Your Order" %}</h1>
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">{% trans "Checkout" %}</h1>
     
-    <form action="{% url 'checkout:payment_method' %}" method="post">
-        {% csrf_token %}
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-semibold mb-2">{% trans "Shipping To:" %}</h2>
+    {# แถบแสดงสถานะขั้นตอนการ Checkout #}
+    <div class="flex justify-center items-center mb-8">
+        <div class="flex items-center text-gray-500">
+            <span class="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold mr-2">1</span>
+            <span class="font-medium">{% trans "Shipping" %}</span>
+        </div>
+        <div class="flex-1 border-t-2 border-indigo-600 mx-4"></div> {# แสดงสถานะว่าผ่าน Shipping แล้ว #}
+        <div class="flex items-center text-indigo-600">
+            <span class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold mr-2">2</span>
+            <span class="font-medium">{% trans "Payment" %}</span>
+        </div>
+        <div class="flex-1 border-t-2 border-gray-300 mx-4"></div>
+        <div class="flex items-center text-gray-500">
+            <span class="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold mr-2">3</span>
+            <span class="font-medium">{% trans "Confirmation" %}</span>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        {# สรุปที่อยู่จัดส่ง #}
+        <h2 class="text-xl font-semibold mb-2 text-gray-800">{% trans "Shipping To:" %}</h2>
+        <div class="border border-gray-200 rounded-md p-4 mb-6">
             <p class="text-gray-700">
+                {{ address.first_name }} {{ address.last_name }}<br>
                 {{ address.address_line_1 }}<br>
+                {% if address.address_line_2 %}{{ address.address_line_2 }}<br>{% endif %}
                 {{ address.city }}, {{ address.postal_code }}<br>
                 {{ address.country.name }}
             </p>
+            <a href="{% url 'checkout:shipping_address' %}" class="text-indigo-600 hover:text-indigo-800 text-sm mt-2 inline-block">{% trans "Change Address" %}</a>
+        </div>
 
-            <h2 class="text-xl font-semibold mt-6 mb-2">{% trans "Order Summary:" %}</h2>
-            <ul class="list-disc pl-5 text-gray-700">
-                {% for line in cart.lines.all %}
-                    <li>{{ line.product.title }} (x{{ line.quantity }})</li>
-                {% endfor %}
-            </ul>
-            <p class="font-bold mt-2">Total: ฿{{ cart.total_excl_tax|floatformat:2 }}</p>
+        {# สรุปรายการสินค้าในตะกร้า #}
+        <h2 class="text-xl font-semibold mt-6 mb-2 text-gray-800">{% trans "Order Summary" %}:</h2>
+        <div class="overflow-x-auto border border-gray-200 rounded-md mb-6">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Product" %}</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Quantity" %}</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Price" %}</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Subtotal" %}</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for line in cart.lines.all %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ line.product.title }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ line.quantity }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">฿{{ line.product.display_price|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">฿{{ line.line_price_incl_tax|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-            <hr class="my-6">
-            
-            <p class="text-center text-gray-600 mb-4">{% trans "Ready to complete your purchase? Click the button below." %}</p>
-            
-            <div class="mt-6 text-center">
-                <button type="submit" class="bg-indigo-600 text-white rounded-lg px-10 py-3 font-semibold hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    {% trans "Place Order" %}
-                </button>
+        {# สรุปยอดรวม #}
+        <div class="flex justify-end pr-6">
+            <div class="w-full sm:w-1/2 space-y-2">
+                <div class="flex justify-between text-sm">
+                    <dt class="text-gray-500">{% trans "Subtotal" %}</dt>
+                    <dd class="text-gray-900">฿{{ cart.total_excl_tax|floatformat:2 }}</dd>
+                </div>
+                {# หากมี Tax และ Shipping สามารถเพิ่มตรงนี้ได้ #}
+                {# ตัวอย่าง:
+                <div class="flex justify-between text-sm">
+                    <dt class="text-gray-500">{% trans "Shipping" %}</dt>
+                    <dd class="text-gray-900">฿{{ cart.shipping_total_incl_tax|floatformat:2 }}</dd>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <dt class="text-gray-500">{% trans "Tax" %}</dt>
+                    <dd class="text-gray-900">฿{{ cart.total_tax|floatformat:2 }}</dd>
+                </div>
+                #}
+                <div class="flex justify-between text-base font-bold text-gray-900 border-t pt-2 mt-2">
+                    <dt>{% trans "Order Total" %}</dt>
+                    <dd>฿{{ cart.total_incl_tax|floatformat:2 }}</dd>
+                </div>
             </div>
         </div>
-    </form>
+
+        <hr class="my-6">
+        
+        <p class="text-center text-gray-600 mb-4">{% trans "Ready to complete your purchase? Click the button below." %}</p>
+        
+        <div class="mt-6 text-center">
+            {# HTMX Form: จะส่งข้อมูลไปที่ checkout:payment_method #}
+            {# ถ้าสำเร็จ, server จะส่ง hx-redirect header เพื่อไปหน้า thank_you #}
+            {# ถ้าเกิด OrderPlacementError, views.py จะ redirect ไปที่ cart:cart_detail และแสดง message #}
+            <form hx-post="{% url 'checkout:payment_method' %}"
+                  hx-target="body" {# Target body เพื่อให้ HTMX-Redirect ทำงาน #}
+                  hx-swap="outerHTML" {# หรือสามารถใช้ hx-swap="none" ถ้าต้องการให้การ redirect เป็นหน้าที่รับผิดชอบของเซิร์ฟเวอร์เท่านั้น #}
+                  hx-indicator="#place-order-spinner" {# แสดง spinner เมื่อโหลด #}
+                  class="inline-block" {# ทำให้ปุ่มอยู่ตรงกลาง #}
+                  id="place-order-form">
+                {% csrf_token %}
+                <button type="submit" class="bg-indigo-600 text-white rounded-lg px-10 py-3 font-semibold hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    {% trans "Place Order" %}
+                    <span id="place-order-spinner" class="htmx-indicator ml-2">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </span>
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
+
+{# CSS สำหรับ HTMX indicators (สามารถย้ายไป base.html หรือไฟล์ CSS หลักได้) #}
+<style>
+    .htmx-indicator {
+        display: none;
+    }
+    .htmx-request .htmx-indicator {
+        display: inline-block;
+    }
+    .htmx-request.htmx-indicator {
+        display: inline-block;
+    }
+</style>
 {% endblock %}
+

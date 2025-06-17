@@ -1,18 +1,70 @@
 from django import template
-from django.forms.boundfield import BoundField
+from django.forms import BoundField  # นำเข้า BoundField
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
 
+# ฟังก์ชันช่วยสำหรับเพิ่ม/แก้ไข attribute ใน widget.attrs
+def _set_widget_attr(field, attribute, value):
+    """
+    Sets or adds an attribute to the widget of a form field.
+    Handles 'class' attribute by appending, others by setting.
+    """
+    # ตรวจสอบให้แน่ใจว่าเป็น BoundField และมี widget
+    if not isinstance(field, BoundField) or not hasattr(field.field, "widget"):
+        return field  # คืนค่า field เดิมหากไม่สามารถแก้ไข widget ได้ (เช่นไม่ใช่ form field)
+
+    # สร้าง mutable copy ของ attrs เพื่อป้องกันการแก้ไข shared dictionary
+    attrs = field.field.widget.attrs.copy()
+
+    if attribute == "class":
+        # สำหรับ class attribute, ให้เพิ่ม class ใหม่เข้าไป
+        current_classes = attrs.get("class", "").split()
+        new_classes = value.split()
+        for cls in new_classes:
+            if cls not in current_classes:
+                current_classes.append(cls)
+        attrs["class"] = " ".join(current_classes)
+    else:
+        # สำหรับ attribute อื่นๆ, ให้ตั้งค่าโดยตรง
+        attrs[attribute] = value
+
+    # สร้าง widget ใหม่ที่มี attrs ที่แก้ไขแล้ว
+    # นี่เป็นวิธีที่ปลอดภัยกว่าการแก้ไข widget.attrs โดยตรง
+    # เนื่องจากบาง widget อาจไม่รองรับการแก้ไข attrs หลังจากสร้างแล้ว
+    field.field.widget.attrs = attrs
+
+    return field  # สำคัญ: คืนค่า field object กลับไป ไม่ใช่ HTML ที่ render แล้ว
+
+
 @register.filter(name="add_class")
-def add_class(bound_field, css_class_str):
-    if not isinstance(bound_field, BoundField):
-        return bound_field
+def add_class(field, css_class):
+    """
+    Adds a CSS class to a form field's widget.
+    Usage: {{ field|add_class:"your-class-name" }}
+    """
+    return _set_widget_attr(field, "class", css_class)
 
-    try:
-        existing_classes = bound_field.field.widget.attrs.get("class", "")
-    except AttributeError:
-        existing_classes = ""
 
-    new_classes = " ".join(filter(None, [existing_classes, css_class_str]))
-    return bound_field.as_widget(attrs={"class": new_classes})
+@register.filter(name="add_placeholder")
+def add_placeholder(field, placeholder_text):
+    """
+    Adds a placeholder attribute to a form field's widget.
+    Usage: {{ field|add_placeholder:"Enter your value here" }}
+    """
+    return _set_widget_attr(field, "placeholder", placeholder_text)
+
+
+@register.filter(name="attr")
+def attr(field, attr_string):
+    """
+    Adds or sets a custom HTML attribute to a form field's widget.
+    Format: "attribute_name:attribute_value" or "attribute_name" for boolean attributes.
+    Usage: {{ field|attr:"hx-post:/some-url/" }} or {{ field|attr:"required" }}
+    """
+    attribute_name, _, attribute_value = attr_string.partition(":")
+    if not attribute_value:  # Handle boolean attributes like 'required'
+        attribute_value = True  # Or attribute_name for HTML boolean attributes
+
+    return _set_widget_attr(field, attribute_name, attribute_value)
