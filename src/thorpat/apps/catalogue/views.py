@@ -27,6 +27,7 @@ class ProductListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["filter"] = self.filterset
+        context["cart_product_form"] = AddToCartForm()
         return context
 
 

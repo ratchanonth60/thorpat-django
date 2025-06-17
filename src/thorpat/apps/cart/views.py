@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext_lazy as _
 from django.views import View
 from django.views.generic import TemplateView
@@ -91,6 +91,15 @@ class UpdateCartLineView(View):
         else:
             messages.error(request, _("Please enter a valid quantity."))
 
+        if request.htmx:
+            # Create a new form for the updated line
+            form = CartLineUpdateForm(initial={"quantity": line.quantity})
+            context = {
+                "item": {"line": line, "form": form},
+                "cart": get_or_create_cart(request)
+            }
+            return render(request, "cart/partials/cart_line.html", context)
+        
         return redirect("cart:cart_detail")
 
 

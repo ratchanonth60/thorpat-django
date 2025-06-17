@@ -1,99 +1,186 @@
-{% extends "base.html" %}
-{% load i18n %}
-{% load static %}
-
-{% block title %}{% trans "Your Shopping Cart" %}{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% load i18n %} {% load static %} {% block title %}{%
+trans "Your Shopping Cart" %}{% endblock %} {% block content %}
 <div class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">
+    {% trans "Your Shopping Cart" %}
+  </h1>
 
-    <h1 class="text-3xl font-bold text-gray-800 mb-6">{% trans "Your Shopping Cart" %}</h1>
-
-    {% if cart.is_empty %}
-        <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4" role="alert">
-            <p class="font-bold">{% trans "Your cart is empty" %}</p>
-            <p>{% trans "You have no items in your shopping cart." %} <a href="/" class="font-semibold underline">{% trans "Continue shopping" %}</a>.</p>
-        </div>
-    {% else %}
-        <div class="flex flex-col lg:flex-row gap-8">
-            <div class="lg:w-3/4">
-                <div class="bg-white shadow-md rounded-lg overflow-hidden">
-                    <table class="min-w-full">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Product" %}</th>
-                                <th class="py-3 px-6 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Quantity" %}</th>
-                                <th class="py-3 px-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Price" %}</th>
-                                <th class="py-3 px-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Total" %}</th>
-                                <th class="py-3 px-6 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Actions" %}</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
-                            {% for item in line_forms %}
-                            <tr>
-                                <td class="py-4 px-6">
-                                    <div class="flex items-center">
-                                        {% if item.line.product.primary_image %}
-                                            <img src="{{ item.line.product.primary_image.url }}" alt="{{ item.line.product.title }}" class="w-16 h-16 object-cover rounded mr-4">
-                                        {% else %}
-                                            <div class="w-16 h-16 bg-gray-200 rounded flex items-center justify-center mr-4">
-                                                <i class="fas fa-image text-gray-400"></i>
-                                            </div>
-                                        {% endif %}
-                                        <div>
-                                            <a href="{{ item.line.product.get_absolute_url }}" class="font-semibold text-gray-800 hover:text-indigo-600">{{ item.line.product.title }}</a>
-                                            </div>
-                                    </div>
-                                </td>
-                                <td class="py-4 px-6 text-center">
-                                    <form action="{% url 'cart:update_line' item.line.id %}" method="post" class="flex items-center justify-center">
-                                        {% csrf_token %}
-                                        {{ item.form.quantity }}
-                                        <button type="submit" class="ml-2 p-1 text-gray-500 hover:text-indigo-600">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
-                                                <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />
-                                            </svg>
-                                        </button>
-                                    </form>
-                                </td>
-                                <td class="py-4 px-6 text-right font-medium text-gray-700">฿{{ item.line.price_excl_tax|floatformat:2 }}</td>
-                                <td class="py-4 px-6 text-right font-bold text-gray-800">฿{{ item.line.line_price_excl_tax|floatformat:2 }}</td>
-                                <td class="py-4 px-6 text-center">
-                                    <form action="{% url 'cart:remove_line' item.line.id %}" method="post">
-                                        {% csrf_token %}
-                                        <button type="submit" class="text-red-500 hover:text-red-700 font-semibold">{% trans "Remove" %}</button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+  {% if cart.is_empty %}
+  <div
+    class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4"
+    role="alert"
+  >
+    <p class="font-bold">{% trans "Your cart is empty" %}</p>
+    <p>
+      {% trans "You have no items in your shopping cart." %}
+      <a href="/" class="font-semibold underline"
+        >{% trans "Continue shopping" %}</a
+      >.
+    </p>
+  </div>
+  {% else %}
+  <div class="flex flex-col lg:flex-row gap-8">
+    <div class="lg:w-3/4">
+      <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <table class="min-w-full">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {% trans "Product" %}
+              </th>
+              <th
+                class="py-3 px-6 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {% trans "Quantity" %}
+              </th>
+              <th
+                class="py-3 px-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {% trans "Price" %}
+              </th>
+              <th
+                class="py-3 px-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {% trans "Total" %}
+              </th>
+              <th
+                class="py-3 px-6 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {% trans "Actions" %}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            {% for item in line_forms %}
+            <tr>
+              <td class="py-4 px-6">
+                <div class="flex items-center">
+                  {% if item.line.product.primary_image %}
+                  <img
+                    src="{{ item.line.product.primary_image.url }}"
+                    alt="{{ item.line.product.title }}"
+                    class="w-16 h-16 object-cover rounded mr-4"
+                  />
+                  {% else %}
+                  <div
+                    class="w-16 h-16 bg-gray-200 rounded flex items-center justify-center mr-4"
+                  >
+                    <i class="fas fa-image text-gray-400"></i>
+                  </div>
+                  {% endif %}
+                  <div>
+                    <a
+                      href="{{ item.line.product.get_absolute_url }}"
+                      class="font-semibold text-gray-800 hover:text-indigo-600"
+                      >{{ item.line.product.title }}</a
+                    >
+                  </div>
                 </div>
-            </div>
+              </td>
+              <td class="py-4 px-6 text-center">
+                <form
+                  hx-post="{% url 'cart:update_line' item.line.id %}"
+                  hx-target="closest tr"
+                  hx-swap="outerHTML"
+                  class="flex items-center justify-center"
+                >
+                  {% csrf_token %}
+                  <div class="flex items-center">
+                    <button
+                      type="button"
+                      class="p-1 text-gray-500 hover:text-indigo-600"
+                      onclick="updateQuantity(this, -1)"
+                    >
+                      <i class="fas fa-minus"></i>
+                    </button>
+                    {{ item.form.quantity }}
+                    <button
+                      type="button"
+                      class="p-1 text-gray-500 hover:text-indigo-600"
+                      onclick="updateQuantity(this, 1)"
+                    >
+                      <i class="fas fa-plus"></i>
+                    </button>
+                  </div>
+                  <button
+                    type="submit"
+                    class="ml-2 p-1 text-gray-500 hover:text-indigo-600"
+                  >
+                    <i class="fas fa-save"></i>
+                  </button>
+                </form>
+              </td>
+              <td class="py-4 px-6 text-right font-medium text-gray-700">
+                ฿{{ item.line.price_excl_tax|floatformat:2 }}
+              </td>
+              <td class="py-4 px-6 text-right font-bold text-gray-800">
+                ฿{{ item.line.line_price_excl_tax|floatformat:2 }}
+              </td>
+              <td class="py-4 px-6 text-center">
+                <form
+                  action="{% url 'cart:remove_line' item.line.id %}"
+                  method="post"
+                >
+                  {% csrf_token %}
+                  <button
+                    type="submit"
+                    class="text-red-500 hover:text-red-700 font-semibold"
+                  >
+                    {% trans "Remove" %}
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-            <div class="lg:w-1/4">
-                <div class="bg-white shadow-md rounded-lg p-6">
-                    <h2 class="text-xl font-semibold mb-4">{% trans "Order Summary" %}</h2>
-                    <div class="flex justify-between mb-2">
-                        <span class="text-gray-600">{% trans "Subtotal" %}</span>
-                        <span class="text-gray-800 font-bold">฿{{ cart.total_excl_tax|floatformat:2 }}</span>
-                    </div>
-                    <div class="flex justify-between mb-2 text-gray-600">
-                        <span>{% trans "Shipping" %}</span>
-                        <span>{% trans "Calculated at next step" %}</span>
-                    </div>
-                    <hr class="my-4">
-                    <div class="flex justify-between font-bold text-lg text-gray-800">
-                        <span>{% trans "Total" %}</span>
-                        <span>฿{{ cart.total_excl_tax|floatformat:2 }}</span>
-                    </div>
-                    <a href="#" class="mt-6 block w-full text-center bg-indigo-600 text-white rounded-lg px-6 py-3 font-semibold hover:bg-indigo-700">
-                        {% trans "Proceed to Checkout" %}
-                    </a>
-                </div>
-            </div>
+    <div class="lg:w-1/4">
+      <div class="bg-white shadow-md rounded-lg p-6">
+        <h2 class="text-xl font-semibold mb-4">{% trans "Order Summary" %}</h2>
+        <div class="flex justify-between mb-2">
+          <span class="text-gray-600">{% trans "Subtotal" %}</span>
+          <span class="text-gray-800 font-bold"
+            >฿{{ cart.total_excl_tax|floatformat:2 }}</span
+          >
         </div>
-    {% endif %}
+        <div class="flex justify-between mb-2 text-gray-600">
+          <span>{% trans "Shipping" %}</span>
+          <span>{% trans "Calculated at next step" %}</span>
+        </div>
+        <hr class="my-4" />
+        <div class="flex justify-between font-bold text-lg text-gray-800">
+          <span>{% trans "Total" %}</span>
+          <span>฿{{ cart.total_excl_tax|floatformat:2 }}</span>
+        </div>
+        <a
+          href="#"
+          class="mt-6 block w-full text-center bg-indigo-600 text-white rounded-lg px-6 py-3 font-semibold hover:bg-indigo-700"
+        >
+          {% trans "Proceed to Checkout" %}
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 </div>
+{% endblock %} {% block extra_js %}
+<script>
+  function updateQuantity(button, change) {
+    const form = button.closest("form");
+    const quantityInput = form.querySelector('input[name="quantity"]');
+    const currentValue = parseInt(quantityInput.value);
+    const newValue = currentValue + change;
+
+    if (newValue >= 1) {
+      quantityInput.value = newValue;
+      // Trigger HTMX request
+      htmx.trigger(form, "submit");
+    }
+  }
+</script>
 {% endblock %}
