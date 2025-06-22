@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import include, path
 
 from . import views
 
@@ -17,5 +17,8 @@ urlpatterns = [
         views.ProductDetailView.as_view(),
         name="product_detail",
     ),
-    # Example: /products/category/t-shirts/
+    path(
+        "<slug:slug>/reviews/",
+        include("thorpat.apps.reviews.urls", namespace="reviews"),
+    ),
 ]

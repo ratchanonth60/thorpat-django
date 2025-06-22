@@ -1,82 +1,115 @@
-{% load static %}
-{% load i18n %}
+{% load static i18n currency_filters %}
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE|default:"en" }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% trans "Thorpat Django" %}{% endblock %}</title> {# ทำเครื่องหมาย title เป็น translatable #}
+    <title>{% block title %}{% trans "Thorpat Django" %}{% endblock %}</title>
     
-    {# โหลดฟอนต์ Inter จาก Google Fonts #}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    {# โหลด Tailwind CSS จาก CDN #}
-    {# สำหรับ production ควรติดตั้ง Tailwind locally และ purge CSS เพื่อลดขนาดไฟล์ #}
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     
-    {# โหลด HTMX จาก CDN #}
     <script src="https://unpkg.com/htmx.org@1.9.10" xintegrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
     
-    {# สำหรับ HTMX CSRF Configuration - ใช้ meta tag เพื่อส่ง csrf token #}
+    {# --- เพิ่ม Alpine.js --- #}
+    <script src="//unpkg.com/alpinejs" defer></script>
+    
     <meta name="csrf-token" content="{{ csrf_token }}"> 
     
-    {# Block สำหรับการเพิ่ม meta tags หรือ CSS/JS พิเศษใน head จากเทมเพลตลูก #}
     {% block extra_head %}{% endblock %}
 </head>
-{# ตั้งค่า font-sans สำหรับ Inter, และ class สำหรับ body โดยรวม #}
 <body class="bg-gray-100 font-inter antialiased leading-normal tracking-normal {% block body_class %}{% endblock %}">
 
-    {# ส่วนของ Navigation Bar #}
     <nav class="bg-white shadow-sm print:hidden">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center">
-                    {# Brand/Logo Link #}
                     <a href="{% url 'home' %}" class="text-xl font-semibold text-indigo-600">
                         Thorpat
                     </a>
                 </div>
                 
-                {# Desktop Navigation (Hidden on small screens) #}
                 <div class="hidden md:block">
                     <div class="ml-10 flex items-center space-x-4">
                         {% if user.is_authenticated %}
-                            {# ลิงก์ Dashboard สำหรับผู้ใช้ที่เข้าสู่ระบบ #}
-                            <a href="{% url 'dashboard:user_info' %}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Dashboard" %}</a>
-                            {# ข้อความต้อนรับพร้อม username #}
-                            <span class="text-gray-700">{% blocktrans with username=user.username %}Hi, {{ username }}!{% endblocktrans %}</span>
-                            {# ฟอร์ม Logout #}
-                            <form method="post" action="{% url 'account_logout' %}" class="inline">
-                                {% csrf_token %}
-                                <button type="submit" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Logout" %}</button>
-                            </form>
+                            <!-- User Dropdown with Alpine.js -->
+                            <div x-data="{ open: false }" @click.away="open = false" class="relative">
+                                <!-- Trigger Button -->
+                                <button @click="open = !open" type="button" class="flex items-center space-x-2 text-sm font-medium text-gray-500 hover:text-gray-900 p-2 rounded-md focus:outline-none">
+                                    <span>{% blocktrans with username=user.get_full_name|default:user.username %}Hi, {{ username }}{% endblocktrans %}</span>
+                                    <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" :class="{ 'transform rotate-180': open }" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                                <!-- Dropdown Panel -->
+                                <div x-show="open"
+                                     x-transition:enter="transition ease-out duration-100"
+                                     x-transition:enter-start="transform opacity-0 scale-95"
+                                     x-transition:enter-end="transform opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     x-transition:leave-start="transform opacity-100 scale-100"
+                                     x-transition:leave-end="transform opacity-0 scale-95"
+                                     class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10"
+                                     style="display: none;">
+                                    <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                                        <div class="px-4 py-3">
+                                          <p class="text-sm">{% trans "Signed in as" %}</p>
+                                          <p class="text-sm font-medium text-gray-900 truncate">{{ user.email }}</p>
+                                        </div>
+                                        <div class="border-t border-gray-100"></div>
+                                        <a href="{% url 'users:overview' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">{% trans "My Account" %}</a>
+                                        <a href="{% url 'orders:list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">{% trans "My Orders" %}</a>
+                                        <a href="{% url 'users:profile-update' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">{% trans "Edit Profile" %}</a>
+                                        {% if user.is_staff %}
+                                            <a href="{% url 'dashboard:user_info' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">{% trans "Dashboard" %}</a>
+                                        {% endif %}
+                                        <div class="border-t border-gray-100"></div>
+                                        <form method="post" action="{% url 'account_logout' %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                                                {% trans "Logout" %}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         {% else %}
-                            {# ลิงก์ Login สำหรับผู้ใช้ที่ยังไม่เข้าสู่ระบบ #}
                             <a href="{% url 'account_login' %}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Login" %}</a>
-                            {# ลิงก์ Sign Up #}
                             <a href="{% url 'account_signup' %}" class="text-indigo-600 hover:text-indigo-800 bg-indigo-100 px-3 py-2 rounded-md text-sm font-medium">{% trans "Sign Up" %}</a>
                         {% endif %}
 
-                        {# รวม Cart Icon / Link - ใช้ include partial เพื่อความสะอาด #}
+                        <!-- Currency Selector -->
+                        <div class="flow-root">
+                            <form action="{% url 'set_currency' %}" method="post" class="inline">
+                                {% csrf_token %}
+                                <select name="currency" onchange="this.form.submit()"
+                                    class="text-sm text-gray-700 border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                                    {% for code, name in available_currencies %}
+                                    <option value="{{ code }}" {% if code == currency %}selected{% endif %}>
+                                        {{ code }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </form>
+                        </div>
+                        
                         {% include "cart/partials/cart_link.html" %}
                     </div>
                 </div>
                 
-                {# Mobile Menu Button (Hidden on large screens) #}
                 <div class="-mr-2 flex md:hidden">
                     <button type="button" class="bg-white inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" aria-controls="mobile-menu" aria-expanded="false"
-                            hx-get="{% url 'users:mobile_menu' %}" {# สมมติว่ามี URL 'users:mobile_menu' สำหรับ HTMX #}
+                            hx-get="#" {# Update with mobile menu URL #}
                             hx-target="#mobile-menu-container"
                             hx-swap="innerHTML"
                             id="mobile-menu-button">
                         <span class="sr-only">{% trans "Open main menu" %}</span>
-                        {# ไอคอนเมนู (Hamburger) #}
                         <svg class="block h-6 w-6" id="icon-menu" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
-                        {# ไอคอนปิด (X) - ซ่อนไว้ #}
                         <svg class="hidden h-6 w-6" id="icon-close" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -84,13 +117,11 @@
                 </div>
             </div>
         </div>
-        {# คอนเทนเนอร์สำหรับ Mobile Menu ที่โหลดด้วย HTMX #}
         <div class="md:hidden hidden" id="mobile-menu-container">
             {# This container will be filled by HTMX #}
         </div>
     </nav>
 
-    {# ส่วนสำหรับแสดงผล Django Messages (ข้อความแจ้งเตือน) #}
     {% if messages %}
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
             {% for message in messages %}
@@ -117,9 +148,7 @@
     </footer>
 
     {% block extra_scripts %}
-    {# โหลด JavaScript หลักของ base layout #}
     <script src="{% static 'js/base_layout.js' %}"></script>
-    {# โหลด JavaScript สำหรับ HTMX CSRF config #}
     <script src="{% static 'js/htmx_csrf_config.js' %}"></script>
     {% endblock %}
 </body>

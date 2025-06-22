@@ -47,6 +47,7 @@ class Cart(models.Model):
         verbose_name = _("Cart")
         verbose_name_plural = _("Carts")
         ordering = ["-date_created"]
+        db_table = "cart"  # RENAMED from 'basket'
 
     def __str__(self):
         return _(
@@ -119,6 +120,7 @@ class CartLine(models.Model):  # RENAMED from Line
         verbose_name_plural = _("Cart Lines")  # RENAMED from Basket Lines
         ordering = ["date_created"]
         unique_together = ("cart", "product")  # RENAMED from ('basket', 'product')
+        db_table = "cart_line"
 
     def __str__(self):
         return _("Cart #%(cart_id)d, Product: %(product)s, Quantity: %(quantity)d") % {

@@ -67,6 +67,11 @@ class User(AbstractUser):
     objects = UserAdminManager()
     REQUIRED_FIELDS = ["email"]
 
+    class Meta:
+        verbose_name = _("user")
+        verbose_name_plural = _("users")
+        db_table = "auth_user"  # Custom table name for clarity
+
     def clean(self):
         super().clean()
         self.email = self.__class__.objects.normalize_email(self.email)

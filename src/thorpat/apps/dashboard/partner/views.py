@@ -27,6 +27,9 @@ class AdminPartnerCreateView(LoginRequiredMixin, CreateView):
         return context
 
     def form_valid(self, form):
+        if not self.request.user.is_authenticated:
+            return super().form_valid(form)
+        form.instance.user = self.request.user
         messages.success(
             self.request, f"Partner '{form.instance.name}' created successfully."
         )

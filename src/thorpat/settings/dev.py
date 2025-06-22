@@ -42,3 +42,36 @@ AUTHENTICATION_BACKENDS = (
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
 )
+
+
+THORPAT_DEFAULT_CURRENCY = "THB"
+THORPAT_AVAILABLE_CURRENCIES = [
+    ("THB", "Thai Baht"),
+    ("USD", "US Dollar"),
+    ("EUR", "Euro"),
+]
+
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [
+            BASE_DIR / "thorpat" / "templates",
+        ],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                # เพิ่ม Context Processor ของเราที่นี่
+                "thorpat.core.context_processors.currency",
+            ],
+            "libraries": {
+                "form_filters": "thorpat.templatetags.form_filters",
+                # เพิ่ม library ของ templatetag ใหม่
+                "currency_filters": "thorpat.templatetags.currency_filters",
+            },
+        },
+    },
+]

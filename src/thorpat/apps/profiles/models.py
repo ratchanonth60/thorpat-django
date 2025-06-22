@@ -52,8 +52,8 @@ class Address(models.Model):
 
     class Meta:
         verbose_name = _("Address")
-
         ordering = ["-created_at"]
+        db_table = "user_address"
 
     def __str__(self):
         return f"{self.user.username}'s address - {self.address_line_1}, {self.city}, {self.country.name}"  # แสดงชื่อประเทศ

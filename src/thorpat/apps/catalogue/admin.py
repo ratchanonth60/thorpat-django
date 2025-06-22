@@ -34,7 +34,7 @@ class StockRecordInline(admin.TabularInline):  # or admin.StackedInline
     extra = 1
     fields = (
         "partner",
-        "partner_sku",
+        "sku",
         "price_currency",
         "price_excl_tax",
         "num_in_stock",
@@ -80,7 +80,7 @@ class StockRecordAdmin(admin.ModelAdmin):
     list_display = (
         "product",
         "partner",
-        "partner_sku",
+        "sku",
         "price_excl_tax",
         "num_in_stock",
         "date_updated",

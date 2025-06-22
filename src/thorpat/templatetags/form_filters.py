@@ -1,6 +1,5 @@
 from django import template
 from django.forms import BoundField  # นำเข้า BoundField
-from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -56,15 +55,34 @@ def add_placeholder(field, placeholder_text):
     return _set_widget_attr(field, "placeholder", placeholder_text)
 
 
-@register.filter(name="attr")
-def attr(field, attr_string):
+@register.filter(name="add_attr")
+def add_attr(field, attributes_str):
     """
-    Adds or sets a custom HTML attribute to a form field's widget.
-    Format: "attribute_name:attribute_value" or "attribute_name" for boolean attributes.
-    Usage: {{ field|attr:"hx-post:/some-url/" }} or {{ field|attr:"required" }}
-    """
-    attribute_name, _, attribute_value = attr_string.partition(":")
-    if not attribute_value:  # Handle boolean attributes like 'required'
-        attribute_value = True  # Or attribute_name for HTML boolean attributes
+    Adds HTML attributes to a form field widget.
 
-    return _set_widget_attr(field, attribute_name, attribute_value)
+    Usage:
+    {{ my_field|add_attr:"class: my-class, rows: 4, placeholder: Enter text" }}
+    """
+    # Start with the widget's existing attributes
+    attrs = field.field.widget.attrs.copy()
+
+    # Split the attribute string by comma to handle multiple attributes
+    attributes = [attr.strip() for attr in attributes_str.split(",")]
+
+    for attribute in attributes:
+        # Split each attribute into key and value
+        try:
+            key, value = attribute.split(":", 1)
+            key = key.strip()
+            value = value.strip()
+
+            # For the 'class' attribute, append to existing classes
+            if key.lower() == "class":
+                attrs[key] = f"{attrs.get(key, '')} {value}".strip()
+            else:
+                attrs[key] = value
+        except ValueError:
+            # Ignore incorrectly formatted attributes
+            pass
+
+    return field.as_widget(attrs=attrs)

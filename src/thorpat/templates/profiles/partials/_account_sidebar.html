@@ -1,0 +1,54 @@
+{% load i18n %}
+
+<nav class="bg-white rounded-lg shadow-sm ring-1 ring-gray-900/5 p-4 space-y-1">
+    
+    <a href="#" 
+       class="group flex items-center px-3 py-2 text-sm font-medium rounded-md
+              {% if active_page == 'overview' %} 
+                  bg-gray-100 text-gray-900 
+              {% else %} 
+                  text-gray-600 hover:bg-gray-50 hover:text-gray-900 
+              {% endif %}">
+        <svg class="h-5 w-5 mr-3 text-gray-400 group-hover:text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" /><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
+        </svg>
+        <span>{% trans "Overview" %}</span>
+    </a>
+
+    <a href="{% url 'orders:list' %}" 
+       class="group flex items-center px-3 py-2 text-sm font-medium rounded-md
+              {% if active_page == 'orders' %} 
+                  bg-gray-100 text-gray-900 
+              {% else %} 
+                  text-gray-600 hover:bg-gray-50 hover:text-gray-900 
+              {% endif %}">
+        <svg class="h-5 w-5 mr-3 text-gray-400 group-hover:text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M3.25 4A2.25 2.25 0 001 6.25v7.5A2.25 2.25 0 003.25 16h13.5A2.25 2.25 0 0019 13.75v-7.5A2.25 2.25 0 0016.75 4H3.25zM16.5 6.25h-13v1.5h13v-1.5z" />
+        </svg>
+        <span>{% trans "My Orders" %}</span>
+    </a>
+
+    <a href="#" 
+       class="group flex items-center px-3 py-2 text-sm font-medium rounded-md
+              {% if active_page == 'profile' %} 
+                  bg-gray-100 text-gray-900 
+              {% else %} 
+                  text-gray-600 hover:bg-gray-50 hover:text-gray-900 
+              {% endif %}">
+        <svg class="h-5 w-5 mr-3 text-gray-400 group-hover:text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-5.5-2.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM10 12a5.99 5.99 0 00-4.793 2.39A6.483 6.483 0 0010 16.5a6.483 6.483 0 004.793-2.11A5.99 5.99 0 0010 12z" clip-rule="evenodd" />
+        </svg>
+        <span>{% trans "Profile Details" %}</span>
+    </a>
+    
+    <a href="{% url 'account_logout' %}" 
+       class="group flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+        <svg class="h-5 w-5 mr-3 text-gray-400 group-hover:text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z" clip-rule="evenodd" />
+            <path fill-rule="evenodd" d="M16.72 9.22a.75.75 0 011.06 0l2.25 2.25a.75.75 0 010 1.06l-2.25 2.25a.75.75 0 11-1.06-1.06L17.44 12l-1.78-1.72a.75.75 0 010-1.06z" clip-rule="evenodd" />
+        </svg>
+        <span>{% trans "Logout" %}</span>
+    </a>
+
+</nav>
+

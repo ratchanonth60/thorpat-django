@@ -12,6 +12,7 @@ class ActivityLog(models.Model):
 
     class Meta:
         ordering = ["-timestamp"]
+        db_table = "activity_log"
 
     def __str__(self):
         return f"{self.user.username} - {self.action} at {self.timestamp.strftime('%Y-%m-%d %H:%M')}"

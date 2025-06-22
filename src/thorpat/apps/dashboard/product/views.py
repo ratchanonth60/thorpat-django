@@ -1,148 +1,126 @@
-from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import get_object_or_404, redirect, render
+from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
-from django.views.generic import DeleteView, ListView, View
+from django.views.generic import CreateView, DeleteView, ListView, UpdateView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-from thorpat.apps.catalogue.filters import ProductFilter
-from thorpat.apps.catalogue.forms import ProductForm, StockRecordForm
-from thorpat.apps.catalogue.models import Product
+from thorpat.apps.catalogue.forms import ProductForm, StockRecordFormSet
+from thorpat.apps.catalogue.models import Product, StockRecord
 
 
-class AdminProductListView(LoginRequiredMixin, ListView):
+class ProductListView(LoginRequiredMixin, ListView):
     model = Product
     template_name = "dashboard/product/list.html"
     context_object_name = "products"
-    paginate_by = 10
-
-    def get_template_names(self):
-        if self.request.htmx:
-            return ["dashboard/product/_list_content.html"]
-        return [self.template_name]
 
     def get_queryset(self):
-        # --- เริ่มต้น Query ด้วยการกรองเฉพาะ user ปัจจุบัน ---
-        queryset = super().get_queryset().filter(user=self.request.user)
+        return Product.objects.filter(user=self.request.user)
 
-        # ส่วน Filter เดิมยังคงทำงานได้ตามปกติ
-        self.filterset = ProductFilter(self.request.GET, queryset=queryset)
-        return self.filterset.qs.prefetch_related("stockrecords").order_by(
-            "-created_at"
+
+class ProductCreateView(LoginRequiredMixin, CreateView):
+    model = Product
+    form_class = ProductForm
+    template_name = "dashboard/product/form.html"
+    success_url = reverse_lazy("dashboard:products:list")
+
+    def get_form_kwargs(self):
+        """Pass the user to the form."""
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        """
+        Add the stockrecord formset to the context.
+        """
+        context = super().get_context_data(**kwargs)
+        if "stockrecord_formset" not in context:
+            context["stockrecord_formset"] = StockRecordFormSet(
+                self.request.POST or None, form_kwargs={"user": self.request.user}
+            )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        """
+        Handle POST requests, instantiating a form instance and a
+        formset instance with the passed POST variables and then checking them
+        for validity.
+        """
+        self.object = None
+        form = self.get_form()
+        formset = StockRecordFormSet(request.POST, form_kwargs={"user": request.user})
+
+        if form.is_valid() and formset.is_valid():
+            return self.form_valid(form, formset)
+        else:
+            return self.form_invalid(form, formset)
+
+    def form_valid(self, form, formset):
+        """
+        If the forms are valid, save the associated models.
+        """
+        self.object = form.save(commit=False)
+        self.object.user = self.request.user
+        self.object.save()
+
+        formset.instance = self.object
+        formset.save()
+
+        return HttpResponseRedirect(self.get_success_url())
+
+    def form_invalid(self, form, formset):
+        """
+        If the forms are invalid, re-render the context data with the
+        data-filled forms and errors.
+        """
+        return self.render_to_response(
+            self.get_context_data(form=form, stockrecord_formset=formset)
         )
+
+
+class ProductUpdateView(LoginRequiredMixin, UpdateView):
+    model = Product
+    form_class = ProductForm
+    template_name = "dashboard/product/form.html"
+    success_url = reverse_lazy("dashboard:products:list")
+
+    def get_queryset(self):
+        return Product.objects.filter(user=self.request.user)
+
+    def get_form_kwargs(self):
+        """Pass the user to the form."""
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["filter"] = self.filterset
+        if "stockrecord_formset" not in context:
+            context["stockrecord_formset"] = StockRecordFormSet(
+                instance=self.object, form_kwargs={"user": self.request.user}
+            )
         return context
 
-    def get_paginate_by(self, queryset):
-        return self.request.GET.get("paginate_by", self.paginate_by)
-
-
-class AdminProductCreateView(LoginRequiredMixin, View):
-    template_name = "dashboard/product/form.html"
-
-    def get(self, request, *args, **kwargs):
-        product_form = ProductForm(user=request.user)  # ส่ง user ปัจจุบันไปยังฟอร์ม
-        stock_form = StockRecordForm()
-        context = {
-            "product_form": product_form,
-            "stock_form": stock_form,
-            "page_title": "Add New Product",
-        }
-        return render(request, self.template_name, context)
-
     def post(self, request, *args, **kwargs):
-        product_form = ProductForm(request.POST, request.FILES)
-        stock_form = StockRecordForm(request.POST)
-
-        if product_form.is_valid() and stock_form.is_valid():
-            product = product_form.save(commit=False)  # สามารถ save() ตรงๆ ได้เลย
-            product.user = self.request.user
-            product.save()
-            # +++ เพิ่มบรรทัดนี้เข้ามาเพื่อบันทึก Categories (m2m) +++
-            product_form.save(commit=False)
-            product_form.save_m2m()
-
-            stock_record = stock_form.save(commit=False)
-            stock_record.product = product
-            stock_record.save()
-
-            messages.success(
-                request, f"Product '{product.title}' has been created successfully."
-            )
-            return redirect("dashboard:products:list")
-
-        # หากฟอร์มไม่ผ่านการตรวจสอบ ให้ส่งฟอร์มพร้อม error กลับไป
-        context = {
-            "product_form": product_form,
-            "stock_form": stock_form,
-            "page_title": "Add New Product",
-        }
-        messages.error(request, "Please correct the errors below.")
-        return render(request, self.template_name, context)
-
-
-class AdminProductUpdateView(LoginRequiredMixin, View):
-    template_name = "dashboard/product/form.html"
-
-    def get_object(self):
-        return get_object_or_404(
-            Product, pk=self.kwargs.get("pk"), user=self.request.user
+        self.object = self.get_object()
+        form = self.get_form()
+        formset = StockRecordFormSet(
+            request.POST, instance=self.object, form_kwargs={"user": request.user}
         )
-
-    def get(self, request, *args, **kwargs):
-        product = get_object_or_404(Product, pk=self.kwargs.get("pk"))
-        stockrecord = product.stockrecords.first()
-
-        product_form = ProductForm(instance=product)
-        stock_form = StockRecordForm(instance=stockrecord)
-
-        context = {
-            "product_form": product_form,
-            "stock_form": stock_form,
-            "page_title": f"Edit Product: {product.title}",
-        }
-        return render(request, self.template_name, context)
-
-    def post(self, request, *args, **kwargs):
-        product = get_object_or_404(Product, pk=self.kwargs.get("pk"))
-        stockrecord = product.stockrecords.first()
-
-        product_form = ProductForm(request.POST, request.FILES, instance=product)
-        stock_form = StockRecordForm(request.POST, instance=stockrecord)
-
-        if product_form.is_valid() and stock_form.is_valid():
-            product_form.save()
-            stock_form.save()
-
-            messages.success(
-                request, f"Product '{product.title}' has been updated successfully."
+        if form.is_valid() and formset.is_valid():
+            form.save()
+            formset.save()
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            return self.render_to_response(
+                self.get_context_data(form=form, stockrecord_formset=formset)
             )
-            return redirect("dashboard:products:list")
-
-        context = {
-            "product_form": product_form,
-            "stock_form": stock_form,
-            "page_title": f"Edit Product: {product.title}",
-        }
-        messages.error(request, "Please correct the errors below.")
-        return render(request, self.template_name, context)
 
 
-class AdminProductDeleteView(LoginRequiredMixin, DeleteView):
+class ProductDeleteView(LoginRequiredMixin, DeleteView):
     model = Product
-    template_name = "dashboard/product/confirm_delete.html"  # เราจะสร้าง template นี้ต่อไป
+    template_name = "dashboard/product/confirm_delete.html"
     success_url = reverse_lazy("dashboard:products:list")
-    context_object_name = "product"
 
     def get_queryset(self):
-        # --- บังคับให้ Query ได้เฉพาะ object ของ user ปัจจุบันเท่านั้น ---
-        # ถ้า user พยายามเข้า URL ของ product คนอื่น จะเจอ 404 Not Found
-        return self.model.objects.filter(user=self.request.user)
+        return Product.objects.filter(user=self.request.user)
 
-    def post(self, request, *args, **kwargs):
-        messages.success(
-            request, f"Product '{self.get_object().title}' has been deleted."
-        )
-        return super().post(request, *args, **kwargs)

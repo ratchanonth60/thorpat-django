@@ -1,0 +1,86 @@
+{% load i18n %}
+
+{# --- ส่วนรายละเอียดและรีวิว --- #}
+<div class="mt-12 border-t pt-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">{% trans "Details & Reviews" %}</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        {# Item Details #}
+        <div class="bg-gray-50 p-6 rounded-lg">
+            <h3 class="font-bold text-xl mb-4">{% trans "Item Details" %}</h3>
+            <ul class="space-y-2 text-sm text-gray-700">
+                {% if product.dimensions %}<li><strong>{% trans "Product Dimensions" %}:</strong> {{ product.dimensions }}</li>{% endif %}
+                <li><strong>{% trans "Date First Available" %}:</strong> {{ product.created_at|date:"d F Y" }}</li>
+                {% if product.manufacturer %}<li><strong>{% trans "Manufacturer" %}:</strong> {{ product.manufacturer }}</li>{% endif %}
+                {% if product.upc %}<li><strong>{% trans "ASIN / UPC" %}:</strong> {{ product.upc }}</li>{% endif %}
+                {% if product.weight_grams %}<li><strong>{% trans "Weight" %}:</strong> {{ product.weight_grams }} Grams</li>{% endif %}
+            </ul>
+        </div>
+        
+        {# แสดงรายการรีวิว #}
+        <div class="bg-gray-50 p-6 rounded-lg">
+            <h3 class="font-bold text-xl mb-4">{% trans "Product Reviews" %} ({{ review_count }})</h3>
+            <div class="space-y-4 max-h-96 overflow-y-auto">
+                {% for review in reviews %}
+                <div class="border-b pb-4">
+                    <p class="font-semibold">{{ review.user.get_full_name }}</p>
+                    <div class="flex items-center my-1">
+                        <div class="flex text-yellow-400 text-sm">
+                            {% for i in "12345" %}{% if i|add:0 <= review.rating %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{% endif %}{% endfor %}
+                        </div>
+                        <span class="text-xs text-gray-500 ml-2">{{ review.created_at|date:"d M Y" }}</span>
+                    </div>
+                    <h4 class="font-semibold text-gray-800">{{ review.title }}</h4>
+                    <p class="text-sm text-gray-600">{{ review.body|linebreaksbr }}</p>
+                </div>
+                {% empty %}
+                <p class="text-sm text-gray-500">{% trans "There are no reviews for this product yet." %}</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{# --- ส่วนฟอร์มรีวิว --- #}
+{% if review_form %}
+<div class="mt-12 border-t pt-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">{% trans "Write a Review" %}</h2>
+    <div class="bg-gray-50 p-6 rounded-lg">
+        <form action="{% url 'catalogue:reviews:add_review' slug=product.slug %}" method="post">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <div>
+                    <label for="{{ review_form.rating.id_for_label }}" class="block text-sm font-medium text-gray-700">{% trans "Your Rating" %}</label>
+                    {{ review_form.rating }}
+                </div>
+                 <div>
+                    <label for="{{ review_form.title.id_for_label }}" class="block text-sm font-medium text-gray-700">{% trans "Review Title" %}</label>
+                    {{ review_form.title }}
+                </div>
+                <div>
+                    <label for="{{ review_form.body.id_for_label }}" class="block text-sm font-medium text-gray-700">{% trans "Review Body" %}</label>
+                    {{ review_form.body }}
+                </div>
+                <div>
+                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        {% trans "Submit Review" %}
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% elif request.user.is_authenticated %}
+<div class="mt-12 border-t pt-8">
+    <div class="bg-gray-100 p-6 rounded-lg text-center">
+        <p class="text-gray-600">{% trans "You have already submitted a review for this product. Thank you!" %}</p>
+    </div>
+</div>
+{% else %}
+<div class="mt-12 border-t pt-8">
+    <div class="bg-gray-100 p-6 rounded-lg text-center">
+        <p class="text-gray-600">{% trans "You must be logged in to write a review." %} <a href="{% url 'account_login' %}?next={{ request.path }}" class="text-indigo-600 hover:underline">{% trans "Login here" %}</a>.</p>
+    </div>
+</div>
+{% endif %}
+

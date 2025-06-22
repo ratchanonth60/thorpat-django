@@ -1,18 +1,19 @@
 from django.urls import path
 
 from .views import (
+    AccountOverviewView,
     CustomPasswordResetCompleteView,
     CustomPasswordResetConfirmView,
     CustomPasswordResetDoneView,
     CustomPasswordResetView,
     MobileMenuView,
-    ValidateUsernameView,
-    ValidateLoginFieldView,  # เพิ่ม View นี้
+    UserProfileUpdateView,
     ValidateEmailView,  # เพิ่ม View นี้
-    ValidatePasswordView,  # เพิ่ม View นี้
+    ValidateLoginFieldView,  # เพิ่ม View นี้
     ValidatePassword2View,  # เพิ่ม View นี้
+    ValidatePasswordView,  # เพิ่ม View นี้
+    ValidateUsernameView,
 )
-
 
 app_name = "users"
 urlpatterns = [
@@ -52,4 +53,6 @@ urlpatterns = [
         CustomPasswordResetCompleteView.as_view(),
         name="password_reset_complete",
     ),
+    path("", AccountOverviewView.as_view(), name="overview"),
+    path("edit/", UserProfileUpdateView.as_view(), name="profile-update"),
 ]

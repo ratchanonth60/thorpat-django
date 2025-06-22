@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
-{% load static %}
-
+{% load static i18n currency_filters %}
 {% block title %}{{ product.title }}{% endblock %}
 
 {% block content %}
@@ -13,7 +11,7 @@
         {# คอลัมน์ซ้าย: รูปภาพ #}
         <div class="space-y-4">
             <div class="bg-gray-100 rounded-lg flex items-center justify-center p-4">
-                {% if product.primary_image %}
+                {% if product.primary_image.url %}
                     <img src="{{ product.primary_image.url }}" alt="{{ product.title }}" class="w-full h-auto max-h-96 object-contain rounded-lg">
                 {% else %}
                     <div class="h-96 w-full bg-gray-200 flex items-center justify-center rounded-lg">
@@ -21,123 +19,80 @@
                     </div>
                 {% endif %}
             </div>
-            {# Placeholder for thumbnails #}
             <div class="grid grid-cols-4 gap-4">
-                <div class="border-2 border-indigo-500 rounded-lg p-1"><img src="{% if product.primary_image %}{{ product.primary_image.url }}{% endif %}" class="w-full h-full object-cover rounded"></div>
-                <div class="border rounded-lg p-1"><img src="{% static 'images/placeholder.png' %}" class="w-full h-full object-cover rounded"></div>
-                <div class="border rounded-lg p-1"><img src="{% static 'images/placeholder.png' %}" class="w-full h-full object-cover rounded"></div>
-                <div class="border rounded-lg p-1"><img src="{% static 'images/placeholder.png' %}" class="w-full h-full object-cover rounded"></div>
+                {% if product.primary_image.url %}
+                <div class="border-2 border-indigo-500 rounded-lg p-1"><img src="{{ product.primary_image.url }}" class="w-full h-full object-cover rounded"></div>
+                {% endif %}
+                <div class="border rounded-lg p-1"><img src="https://placehold.co/100x100/e2e8f0/cbd5e0?text=Thumb" class="w-full h-full object-cover rounded"></div>
+                <div class="border rounded-lg p-1"><img src="https://placehold.co/100x100/e2e8f0/cbd5e0?text=Thumb" class="w-full h-full object-cover rounded"></div>
+                <div class="border rounded-lg p-1"><img src="https://placehold.co/100x100/e2e8f0/cbd5e0?text=Thumb" class="w-full h-full object-cover rounded"></div>
             </div>
         </div>
 
         {# คอลัมน์ขวา: ข้อมูลและปุ่ม #}
-        <div class="space-y-4">
+        <div class="space-y-6">
             <div>
                 <span class="text-xs font-semibold bg-green-100 text-green-800 px-2 py-1 rounded-full">New Arrival</span>
                 <h1 class="text-3xl font-bold text-gray-800 mt-2">{{ product.title }}</h1>
-                {# Placeholder for reviews #}
-                <div class="flex items-center mt-1">
+                {# --- แสดงผลคะแนนรีวิว --- #}
+                <div class="flex items-center mt-2">
+                    {% if average_rating > 0 %}
                     <div class="flex text-yellow-400">
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                        {# แสดงดาวตามคะแนนเฉลี่ย #}
+                        {% for i in "12345" %}
+                            {% if i|add:0 <= average_rating %}
+                                <i class="fas fa-star"></i>
+                            {% else %}
+                                <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
                     </div>
-                    <span class="text-sm text-gray-500 ml-2">4.5 (55 Review)</span>
+                    <span class="text-sm text-gray-500 ml-2">{{ average_rating|floatformat:1 }} ({{ review_count }} Review{{ review_count|pluralize }})</span>
+                    {% else %}
+                    <span class="text-sm text-gray-500">{% trans "No reviews yet" %}</span>
+                    {% endif %}
                 </div>
             </div>
 
-            {# Price #}
             {% with stockrecord=product.primary_stockrecord %}
-            <div class="text-3xl font-bold text-gray-900">
-                {% if stockrecord.price_excl_tax %}
-                    ${{ stockrecord.price_excl_tax|floatformat:2 }}
-                    <span class="text-xl text-gray-400 line-through ml-2">${{ stockrecord.price_excl_tax|add:20|floatformat:2 }}</span>
-                    <span class="text-sm font-semibold text-red-500 ml-2">(30% OFF)</span>
-                {% else %}
-                    {% trans "Price not available" %}
-                {% endif %}
+            {% if stockrecord and stockrecord.price_excl_tax is not None %}
+            <div class="text-3xl font-bold text-gray-900 flex items-baseline gap-3">
+                <span>{% convert_currency stockrecord.price_excl_tax %}</span>
+                <span class="text-xl text-gray-400 line-through">{% convert_currency stockrecord.price_excl_tax|add:"20.00" %}</span> 
+                <span class="text-sm font-semibold text-red-500">(30% OFF)</span>
             </div>
+            {% endif %}
             {% endwith %}
-
-            {# Options (Placeholders) #}
-            <div class="flex space-x-8">
-                <div>
-                    <label class="text-sm font-medium">Colors > Dark</label>
-                    <div class="flex items-center gap-2 mt-2">
-                        <span class="h-6 w-6 rounded-full bg-blue-900 ring-2 ring-offset-1 ring-blue-900"></span>
-                        <span class="h-6 w-6 rounded-full bg-yellow-400"></span>
-                        <span class="h-6 w-6 rounded-full bg-white border"></span>
-                        <span class="h-6 w-6 rounded-full bg-green-500"></span>
-                    </div>
-                </div>
-                <div>
-                    <label class="text-sm font-medium">Size > M</label>
-                     <div class="flex items-center gap-2 mt-2">
-                        <span class="h-8 w-8 flex items-center justify-center text-xs border rounded">S</span>
-                        <span class="h-8 w-8 flex items-center justify-center text-xs border rounded bg-gray-800 text-white">M</span>
-                        <span class="h-8 w-8 flex items-center justify-center text-xs border rounded">XL</span>
-                        <span class="h-8 w-8 flex items-center justify-center text-xs border rounded">XXL</span>
-                    </div>
-                </div>
-            </div>
             
-            {# Add to Cart Form #}
+            {# ... ส่วนของ Options และ Add to Cart Form ... #}
             {% if product.is_available_to_buy %}
-                <div class="text-green-600 text-sm font-semibold"><i class="fas fa-check-circle mr-1"></i> In Stock</div>
-                <form hx-post="{% url 'cart:add_line' product.id %}"  hx-target="#cart-link" hx-swap="outerHTML" method="post" class="flex items-center gap-4 pt-4 border-t">
-                    {% csrf_token %}
-                    <div>
-                        <label for="id_quantity" class="text-sm font-medium">{% trans "Quantity" %}:</label>
-                        <div class="flex items-center mt-1">
-                            {{ cart_product_form.quantity }}
-                        </div>
+            <form hx-post="{% url 'cart:add_line' product.id %}" hx-target="#cart-link" hx-swap="outerHTML" method="post" class="pt-4">
+                {% csrf_token %}
+                <div class="flex items-center space-x-4">
+                    <div class="w-24">
+                        <label for="quantity" class="sr-only">Quantity</label>
+                        <input type="number" name="quantity" id="quantity" value="1" min="1" class="block w-full rounded-md border-gray-300 py-3 px-3 text-center shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-base">
                     </div>
-                    <button type="submit" class="w-full bg-orange-500 text-black font-semibold py-3 px-8 rounded-lg hover:bg-orange-600">
-                        <i class="fas fa-shopping-cart mr-2">
-                            {% trans "Add to Cart" %}
-                        </i> 
+                    <button type="submit" class="flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 py-3 px-8 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200">
+                        <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" /></svg>
+                        <span>Add to cart</span>
                     </button>
-                    <button type="button" class="border p-3 rounded-lg text-gray-500 hover:text-red-500"><i class="far fa-heart"></i></button>
-                </form>
+                </div>
+            </form>
             {% else %}
-                <div class="text-red-500 font-semibold">{% trans "Out of stock" %}</div>
+            <div class="mt-8"><p class="text-red-500 font-semibold">{% trans "Out of stock" %}</p></div>
             {% endif %}
 
-            {# Description #}
-            <div>
-                <h3 class="font-semibold text-lg">{% trans "Description" %}:</h3>
-                <p class="text-gray-600">{{ product.description|linebreaks }}</p>
+            <div class="pt-4">
+                <h3 class="font-semibold text-lg text-gray-800">{% trans "Description" %}</h3>
+                <div class="text-gray-600 prose mt-2">{{ product.description|linebreaks }}</div>
             </div>
         </div>
     </div>
 
-    {# --- ส่วนล่าง: รายละเอียดและรีวิว (ใช้ข้อมูล Placeholder) --- #}
-    <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
-        {# Item Details #}
-        <div class="bg-gray-50 p-6 rounded-lg">
-            <h3 class="font-bold text-xl mb-4">{% trans "Items Detail" %}</h3>
-            <ul class="space-y-2 text-sm text-gray-700">
-                <li><strong>Product Dimensions:</strong> 53.3 x 40.6 x 6.4 cm; 500 Grams</li>
-                <li><strong>Date First Available:</strong> 22 September 2023</li>
-                <li><strong>Manufacturer:</strong> Greensboro, NC 27401 Prospa-Pal</li>
-                <li><strong>ASIN:</strong> B0CJMML11B</li>
-                <li><strong>Item model number:</strong> 1137AZ</li>
-            </ul>
-        </div>
-        {# Top Review #}
-        <div class="bg-gray-50 p-6 rounded-lg">
-            <h3 class="font-bold text-xl mb-4">{% trans "Top Review From World" %}</h3>
-            <div class="space-y-4">
-                <div class="border-b pb-4">
-                    <p class="font-semibold">Henny K. Mark</p>
-                    <div class="flex text-yellow-400 text-sm my-1"><i class="fas fa-star"></i> ... </div>
-                    <p class="text-sm text-gray-600">Medium thickness. Did not shrink after wash. Good elasticity...</p>
-                </div>
-                <div>
-                    <p class="font-semibold">Jorge Herry</p>
-                    <div class="flex text-yellow-400 text-sm my-1"><i class="fas fa-star"></i> ... </div>
-                    <p class="text-sm text-gray-600">I liked the t-shirt, it's pure cotton & skin friendly, but the size is smaller...</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    {# --- ส่วนที่แก้ไข: เรียกใช้ไฟล์ partial ของรีวิว --- #}
+    {% include "catalogue/partials/_product_reviews.html" %}
+
 </div>
 {% endblock %}
+

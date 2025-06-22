@@ -22,6 +22,7 @@ APPS = [
     "thorpat.apps.checkout",
     "thorpat.apps.order",
     "thorpat.apps.partner",
+    "thorpat.apps.reviews",
 ]
 
 APPS_THIRD_PARTY = [

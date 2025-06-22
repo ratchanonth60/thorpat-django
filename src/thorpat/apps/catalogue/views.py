@@ -4,6 +4,8 @@ from django.shortcuts import get_object_or_404
 from django.views.generic import DetailView, ListView
 
 from thorpat.apps.cart.forms import AddToCartForm
+from thorpat.apps.reviews.forms import ProductReviewForm
+from thorpat.apps.reviews.models import ProductReview
 
 from .filters import ProductFilter
 from .models import Product
@@ -55,18 +57,26 @@ class ProductDetailView(DetailView):
     template_name = "catalogue/product_detail.html"
     context_object_name = "product"
 
-    def get_queryset(self):
-        # --- MODIFICATION START ---
-        # แก้ไข Queryset ให้ดึงข้อมูล stockrecords และ images มาล่วงหน้า
-        # เพื่อป้องกันข้อผิดพลาด ProgrammingError ตอนแสดงผล display_price
-        # และช่วยเพิ่มประสิทธิภาพในการโหลดรูปภาพ
-        return (
-            super()
-            .get_queryset()
-            .filter(is_public=True)
-            .prefetch_related("stockrecords")
-        )
-        # --- MODIFICATION END ---
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        product = self.get_object()
 
-    def get_object(self, queryset=None):
-        return get_object_or_404(self.get_queryset(), slug=self.kwargs["slug"])
+        # ดึงรีวิวที่ได้รับการอนุมัติแล้ว
+        context["reviews"] = product.reviews.filter(is_approved=True)
+        context["review_count"] = context["reviews"].count()
+
+        # เพิ่มฟอร์มรีวิวเข้าไปใน context ถ้า user login อยู่ และยังไม่เคยรีวิว
+        if self.request.user.is_authenticated:
+            if not ProductReview.objects.filter(
+                product=product, user=self.request.user
+            ).exists():
+                context["review_form"] = ProductReviewForm()
+
+        # คำนวณคะแนนเฉลี่ย
+        if context["review_count"] > 0:
+            total_rating = sum(review.rating for review in context["reviews"])
+            context["average_rating"] = total_rating / context["review_count"]
+        else:
+            context["average_rating"] = 0
+
+        return context

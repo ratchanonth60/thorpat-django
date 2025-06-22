@@ -19,7 +19,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-from .views import home_view
+from .views import SetCurrencyView, home_view
 
 urlpatterns = [
     path("", home_view, name="home"),
@@ -28,6 +28,9 @@ urlpatterns = [
     path("api/", include("thorpat.api.v1.urls")),
     path("accounts/", include("allauth.urls")),
     path("dashboard/", include("thorpat.apps.dashboard.urls")),
+    path("i18n/", include("django.conf.urls.i18n")),
+    # เพิ่ม URL สำหรับการเปลี่ยนสกุลเงิน
+    path("currency/", SetCurrencyView.as_view(), name="set_currency"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

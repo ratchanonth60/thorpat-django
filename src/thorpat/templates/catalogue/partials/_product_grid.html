@@ -10,7 +10,7 @@
                 <div class="w-full h-56 bg-gray-200 dark:bg-slate-700 overflow-hidden">
                     {% with primary_image=product.primary_image %}
                         {% if primary_image %}
-                            <img src="{{ primary_image.image.url }}" alt="{{ product.title|escape }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            <img src="{{ primary_image.url }}" alt="{{ product.title|escape }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                         {% else %}
                             <div class="w-full h-full flex items-center justify-center bg-gray-300 dark:bg-slate-700">
                                 <span class="text-gray-500 text-center">{% trans "No Image Available" %}</span>

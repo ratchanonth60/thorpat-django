@@ -36,7 +36,6 @@ class AddToCartView(View):
 
         quantity = int(request.POST.get("quantity", 1))
 
-        # Basic stock check
         if (
             not product.is_available_to_buy
             or product.primary_stockrecord.net_stock_level < quantity
@@ -47,9 +46,8 @@ class AddToCartView(View):
                     "Sorry, this product is out of stock or not enough quantity available."
                 ),
             )
-            return redirect(
-                "catalogue:product_detail", slug=product.slug
-            )  # Redirect back to product page
+            # สำหรับ error, redirect กลับไปที่หน้าเดิม
+            return redirect("catalogue:product_detail", slug=product.slug)
 
         line, created = cart.add_product(product, quantity)
 
@@ -66,6 +64,12 @@ class AddToCartView(View):
                 % {"product": product.title},
             )
 
+        # ถ้า request มาจาก HTMX ให้ render เฉพาะส่วนของ cart link กลับไป
+        if request.htmx:
+            # Context ที่ส่งกลับไปต้องมี `request.cart` ซึ่ง middleware จัดการให้แล้ว
+            return render(request, "cart/partials/cart_link.html")
+
+        # Fallback สำหรับกรณีที่ไม่ใช่ HTMX (ซึ่งไม่น่าจะเกิดขึ้นจาก form ปัจจุบัน)
         return redirect("cart:cart_detail")
 
 
@@ -96,10 +100,10 @@ class UpdateCartLineView(View):
             form = CartLineUpdateForm(initial={"quantity": line.quantity})
             context = {
                 "item": {"line": line, "form": form},
-                "cart": get_or_create_cart(request)
+                "cart": get_or_create_cart(request),
             }
             return render(request, "cart/partials/cart_line.html", context)
-        
+
         return redirect("cart:cart_detail")
 
 

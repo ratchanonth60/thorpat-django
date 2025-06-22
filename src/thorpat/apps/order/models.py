@@ -10,15 +10,17 @@ from .abstract import AbstractAddress
 
 
 class ShippingAddress(AbstractAddress):
-    class Meta:
+    class Meta(AbstractAddress.Meta):
         verbose_name = _("Shipping Address")
         verbose_name_plural = _("Shipping Addresses")
+        db_table = "shipping_address"  # Custom table name for clarity
 
 
 class BillingAddress(AbstractAddress):
-    class Meta:
+    class Meta(AbstractAddress.Meta):
         verbose_name = _("Billing Address")
         verbose_name_plural = _("Billing Addresses")
+        db_table = "billing_address"  # Custom table name for clarity
 
 
 class Order(models.Model):
@@ -56,6 +58,7 @@ class Order(models.Model):
         verbose_name = _("Order")
         verbose_name_plural = _("Orders")
         ordering = ["-date_placed"]
+        db_table = "order"  # Custom table name for clarity
 
     def __str__(self):
         return f"Order #{self.number}"
@@ -80,3 +83,4 @@ class OrderLine(models.Model):
         verbose_name = _("Order Line")
         verbose_name_plural = _("Order Lines")
         ordering = ["pk"]
+        db_table = "order_line"  # Custom table name for clarity

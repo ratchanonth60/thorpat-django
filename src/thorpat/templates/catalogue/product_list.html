@@ -39,7 +39,7 @@
                                 {% trans "Product Name" %}
                             </label>
                             <div class="mt-1">
-                                {{ filter.form.search|add_class:"form-input w-full"|add_placeholder:_("Search by product name...")|attr:"hx-trigger:keyup changed delay:500ms" }} {# Add hx-trigger for real-time search as user types #}
+                                {{ filter.form.search|add_class:"form-input w-full"|add_placeholder:_("Search by product name...")|add_attr:"hx-trigger:keyup changed delay:500ms" }}
                                 {% if filter.form.search.errors %}
                                     <p class="text-xs text-rose-500 mt-1">{{ filter.form.search.errors.as_text }}</p>
                                 {% endif %}
@@ -52,7 +52,7 @@
                                 {% trans "Category" %}
                             </label>
                             <div class="mt-1">
-                                {{ filter.form.category|add_class:"form-select w-full"|attr:"hx-trigger:change" }} {# Trigger on select change #}
+                                {{ filter.form.category|add_class:"form-select w-full"|add_attr:"hx-trigger:change" }} {# Trigger on select change #}
                                 {% if filter.form.category.errors %}
                                     <p class="text-xs text-rose-500 mt-1">{{ filter.form.category.errors.as_text }}</p>
                                 {% endif %}

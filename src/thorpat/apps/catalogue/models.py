@@ -62,6 +62,7 @@ class ProductType(models.Model):
         verbose_name = _("Product Type")
         verbose_name_plural = _("Product Types")
         ordering = ["name"]
+        db_table = "product_type"
 
     def __str__(self):
         return self.name
@@ -99,7 +100,24 @@ class Product(models.Model):
     )
     # UPC (Universal Product Code) / EAN / ISBN - could be an attribute or a direct field
     upc = models.CharField(
-        _("UPC"), max_length=64, blank=True, null=True, unique=True, db_index=True
+        _("UPC / ASIN"),
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text=_("Universal Product Code (or ASIN, ISBN, etc.)"),
+    )
+    manufacturer = models.CharField(
+        _("Manufacturer"), max_length=255, blank=True, null=True
+    )
+    dimensions = models.CharField(
+        _("Dimensions"),
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text=_("e.g., 53.3 x 40.6 x 6.4 cm"),
+    )
+    weight_grams = models.DecimalField(
+        _("Weight (grams)"), max_digits=10, decimal_places=2, blank=True, null=True
     )
 
     # Product structure: stand-alone, parent, child (for variations)
@@ -122,6 +140,7 @@ class Product(models.Model):
         verbose_name = _("Product")
         verbose_name_plural = _("Products")
         ordering = ["-created_at", "title"]
+        db_table = "product"
 
     def __str__(self):
         return self.title
@@ -204,6 +223,7 @@ class ProductAttribute(models.Model):
             "product_type",
             "code",
         )  # Ensure code is unique per product type
+        db_table = "product_attribute"
 
     def __str__(self):
         return self.name
@@ -245,6 +265,7 @@ class ProductAttributeValue(models.Model):
             "product",
             "attribute",
         )  # Each product can have one value for a given attribute
+        db_table = "product_attribute_value"
 
     def __str__(self):
         return f"{self.product.title} - {self.attribute.name}: {self.value_text or 'N/A'}"  # Simplified
@@ -267,7 +288,7 @@ class StockRecord(models.Model):
         related_name="stockrecords",
         verbose_name=_("Partner"),
     )
-    partner_sku = models.CharField(
+    sku = models.CharField(
         _("Partner SKU"),
         max_length=128,
         blank=True,
@@ -319,6 +340,7 @@ class StockRecord(models.Model):
             "partner",
         )  # Each partner can only have one stock record for a product
         ordering = ["-date_created"]
+        db_table = "stock_record"
 
     def __str__(self):
         return f"{self.product.title} from {self.partner.name} - Price: {self.price_excl_tax} {self.price_currency}, Stock: {self.num_in_stock}"

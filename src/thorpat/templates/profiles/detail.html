@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "My Account" %}{% endblock %}
+
+{% block content %}
+<div class="bg-gray-100">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+        
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold tracking-tight text-gray-900">{% trans "My Account" %}</h1>
+            <p class="mt-1 text-sm text-gray-600">
+                {% blocktrans with name=user.get_full_name|default:user.username %}Welcome back, {{ name }}!{% endblocktrans %}
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            
+            {# --- Account Navigation Sidebar --- #}
+            <aside class="lg:col-span-1">
+                {% include 'profiles/partials/_account_sidebar.html' with active_page='overview' %}
+            </aside>
+
+            {# --- Main Content Area --- #}
+            <main class="lg:col-span-3">
+                <div class="bg-white rounded-lg shadow-sm ring-1 ring-gray-900/5 p-6 md:p-8">
+                    
+                    <h2 class="text-xl font-semibold text-gray-900 border-b pb-4 mb-6">{% trans "Account Overview" %}</h2>
+
+                    {# --- Quick Summary Cards --- #}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {# Profile Info Card #}
+                        <div class="bg-gray-50 rounded-lg p-5">
+                            <h3 class="font-semibold text-gray-800">{% trans "Profile Information" %}</h3>
+                            <p class="text-sm text-gray-600 mt-2">
+                                {{ user.get_full_name|default:user.username }}<br>
+                                {{ user.email }}
+                            </p>
+                            <a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 mt-4 inline-block">{% trans "Edit Profile" %} &rarr;</a>
+                        </div>
+
+                        {# Primary Address Card #}
+                        <div class="bg-gray-50 rounded-lg p-5">
+                            <h3 class="font-semibold text-gray-800">{% trans "Primary Address" %}</h3>
+                            {% with address=user.addresses.first %}
+                                {% if address %}
+                                <address class="not-italic text-sm text-gray-600 mt-2">
+                                    {{ address.line1 }}<br>
+                                    {{ address.city }}, {{ address.state }} {{ address.postcode }}
+                                </address>
+                                {% else %}
+                                <p class="text-sm text-gray-500 mt-2">{% trans "No address on file." %}</p>
+                                {% endif %}
+                            {% endwith %}
+                             <a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 mt-4 inline-block">{% trans "Manage Addresses" %} &rarr;</a>
+                        </div>
+                    </div>
+
+                    {# --- Recent Order --- #}
+                    <div class="mt-10">
+                        <h3 class="text-lg font-semibold text-gray-800">{% trans "Recent Order" %}</h3>
+                        {% with order=user.orders.first %}
+                            {% if order %}
+                                <div class="mt-4 border rounded-lg p-4 flex flex-wrap items-center justify-between gap-4">
+                                    <div>
+                                        <p class="font-medium text-gray-900">{% blocktrans with number=order.number %}Order #{{ number }}{% endblocktrans %}</p>
+                                        <p class="text-sm text-gray-500">{% blocktrans with date=order.date_placed|date:"d M Y" %}Placed on {{ date }}{% endblocktrans %}</p>
+                                    </div>
+                                    <div>
+                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                             {% if order.status == 'Completed' %} bg-green-100 text-green-800 
+                                             {% else %} bg-yellow-100 text-yellow-800 {% endif %}">
+                                            {{ order.status }}
+                                        </span>
+                                    </div>
+                                    <div class="w-full sm:w-auto">
+                                        <a href="{{ order.get_absolute_url }}" class="w-full sm:w-auto text-center inline-block rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">{% trans "View Details" %}</a>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="mt-4 border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
+                                    <p class="text-gray-500">{% trans "You haven't placed any orders yet." %}</p>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+
+                </div>
+            </main>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+

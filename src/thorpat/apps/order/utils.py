@@ -91,7 +91,7 @@ class OrderCreator:
             order=order,
             product=line.product,
             product_title=line.product.title,
-            partner_sku=stockrecord.partner_sku if stockrecord else "",
+            partner_sku=stockrecord.sku if stockrecord else "",
             quantity=line.quantity,
             price_excl_tax=line.price_excl_tax,
             line_price_excl_tax=line.line_price_excl_tax,

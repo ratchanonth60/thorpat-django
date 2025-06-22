@@ -2,6 +2,7 @@ from django import forms
 
 from .models import Product, ProductCategory, ProductType, StockRecord
 from thorpat.apps.partner.models import Partner
+from django.forms import inlineformset_factory
 
 
 class ProductTypeForm(forms.ModelForm):
@@ -50,7 +51,7 @@ class ProductCategoryForm(forms.ModelForm):
 class ProductForm(forms.ModelForm):
     categories = forms.ModelMultipleChoiceField(
         queryset=ProductCategory.objects.none(),
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.SelectMultiple(attrs={"class": "select select-bordered w-full"}),
         required=False,
     )
 
@@ -114,17 +115,26 @@ class ProductForm(forms.ModelForm):
 
 
 class StockRecordForm(forms.ModelForm):
-    # ทำให้ field 'partner' แสดงเป็น dropdown
-    partner = forms.ModelChoiceField(
-        queryset=Partner.objects.all(),
-        widget=forms.Select(
-            attrs={"class": "block w-full mt-1 border-gray-300 rounded-md shadow-sm"}
-        ),
-    )
+    def __init__(self, *args, **kwargs):
+        # ดึง user ออกจาก kwargs ก่อน
+        user = kwargs.pop("user", None)
+        # เรียก super() โดยไม่มี user อยู่ใน kwargs แล้ว
+        super().__init__(*args, **kwargs)
+        # ตอนนี้ค่อยใช้ user เพื่อกรอง queryset
+        if user:
+            self.fields["partner"].queryset = Partner.objects.filter(user=user)
 
     class Meta:
         model = StockRecord
-        fields = ["partner", "partner_sku", "price_excl_tax", "num_in_stock"]
+        fields = [
+            "partner",
+            "sku",
+            "cost_price",
+            "price_excl_tax",
+            "price_incl_tax",
+            "num_in_stock",
+            "low_stock_threshold",
+        ]
         widgets = {
             "partner_sku": forms.TextInput(
                 attrs={
@@ -142,3 +152,14 @@ class StockRecordForm(forms.ModelForm):
                 }
             ),
         }
+
+
+StockRecordFormSet = inlineformset_factory(
+    Product,
+    StockRecord,
+    form=StockRecordForm,
+    extra=1,
+    can_delete=False,
+    max_num=1,
+    fk_name="product",
+)
