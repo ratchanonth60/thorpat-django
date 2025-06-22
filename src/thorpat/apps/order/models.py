@@ -24,6 +24,22 @@ class BillingAddress(AbstractAddress):
 
 
 class Order(models.Model):
+    PENDING = "Pending"
+    PROCESSING = "Processing"
+    SHIPPED = "Shipped"
+    COMPLETED = "Completed"
+    CANCELLED = "Cancelled"
+    REFUNDED = "Refunded"
+
+    STATUS_CHOICES = (
+        (PENDING, _("Pending")),
+        (PROCESSING, _("Processing")),
+        (SHIPPED, _("Shipped")),
+        (COMPLETED, _("Completed")),
+        (CANCELLED, _("Cancelled")),
+        (REFUNDED, _("Refunded")),
+    )
+
     number = models.CharField(
         _("Order Number"),
         max_length=128,
@@ -51,17 +67,31 @@ class Order(models.Model):
     total_excl_tax = models.DecimalField(
         _("Order total (excl. tax)"), decimal_places=2, max_digits=12
     )
-    status = models.CharField(_("Status"), max_length=100, blank=True, null=True)
+    status = models.CharField(
+        _("Status"),
+        max_length=100,
+        choices=STATUS_CHOICES,
+        default=PENDING,
+        blank=True,
+        null=True,
+    )
     date_placed = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         verbose_name = _("Order")
         verbose_name_plural = _("Orders")
         ordering = ["-date_placed"]
-        db_table = "order"  # Custom table name for clarity
+        db_table = "order"
 
     def __str__(self):
         return f"Order #{self.number}"
+
+    @property
+    def total(self):
+        """
+        Return the total of the order
+        """
+        return self.total_excl_tax
 
 
 class OrderLine(models.Model):

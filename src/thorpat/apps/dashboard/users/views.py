@@ -1,34 +1,126 @@
 import json
+from datetime import datetime, timedelta
 
-from django.contrib.auth import get_user_model
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.db.models import Count, Sum
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.views.generic import ListView, TemplateView, UpdateView
 
 from thorpat.apps.activitylog.models import ActivityLog
+from thorpat.apps.catalogue.models import Product, ProductCategory
+from thorpat.apps.order.models import Order, OrderLine
 from thorpat.apps.users.forms import UserProfileUpdateForm
+from thorpat.apps.users.models import User
 
-User = get_user_model()
+
+class StaffRequiredMixin(UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.is_staff
 
 
-class UserInfoView(LoginRequiredMixin, TemplateView):
-    """
-    View for displaying user information on their dashboard.
-    This was previously named UserDashboardView in our examples.
-    """
+class DashboardUserView(StaffRequiredMixin, TemplateView):
+    template_name = "dashboard/user/info.html"
 
-    template_name = (
-        "dashboard/user/info.html"  # Path to your user info/dashboard template
-    )
+    def get_monthly_sales_data(self):
+        # Generate a list of months for the last year
+        today = timezone.now()
+        months = [(today - timedelta(days=30 * i)).strftime("%B") for i in range(12)]
+        months.reverse()
+
+        sales_data = {month: 0 for month in months}
+
+        # TEMPORARY FIX: Removed date filtering to fetch all orders
+        # last_12_months = today - timedelta(days=365)
+        orders = (
+            # Order.objects.filter(date_placed__gte=last_12_months)
+            Order.objects.all()  # ดึงข้อมูล Order ทั้งหมดโดยไม่กรองวันที่
+            .values("date_placed__month", "date_placed__year")
+            .annotate(total_sales=Sum("total_excl_tax"))
+            .order_by("date_placed__year", "date_placed__month")
+        )
+
+        # Since we removed the date filter, let's adjust how we populate sales_data
+        # This part will now just aggregate data by month/year regardless of the last 12 months
+        processed_sales_data = {}
+        for order in orders:
+            # Create a key like "June 2025"
+            month_year_key = datetime(
+                year=order["date_placed__year"],
+                month=order["date_placed__month"],
+                day=1,
+            ).strftime("%B %Y")
+
+            if month_year_key not in processed_sales_data:
+                processed_sales_data[month_year_key] = 0
+            processed_sales_data[month_year_key] += float(order["total_sales"])
+
+        # If there's no data, return empty lists
+        if not processed_sales_data:
+            return {"labels": [], "data": []}
+
+        return {
+            "labels": list(processed_sales_data.keys()),
+            "data": list(processed_sales_data.values()),
+        }
+
+    def get_order_status_data(self):
+        status_counts = (
+            Order.objects.values("status")
+            .annotate(count=Count("status"))
+            .order_by("status")
+        )
+        labels = [
+            dict(Order.STATUS_CHOICES).get(item["status"], item["status"])
+            for item in status_counts
+        ]
+        data = [item["count"] for item in status_counts]
+        return {"labels": labels, "data": data}
+
+    def get_top_selling_products(self, limit=5):
+        return (
+            OrderLine.objects.values("product__title")
+            .annotate(total_quantity=Sum("quantity"))
+            .order_by("-total_quantity")[:limit]
+        )
+
+    def get_product_by_category_data(self):
+        """
+        ฟังก์ชันใหม่สำหรับดึงข้อมูลจำนวนสินค้าในแต่ละ Category
+        """
+        category_data = (
+            ProductCategory.objects.annotate(num_products=Count("products"))
+            .filter(num_products__gt=0)
+            .order_by("-num_products")
+        )
+        labels = [category.name for category in category_data]
+        data = [category.num_products for category in category_data]
+        return {"labels": labels, "data": data}
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["current_user"] = self.request.user
-        # Add any other context data needed for the info page
-        # context['profile'] = self.request.user.profile # If you have a related profile model
+        total_sales = (
+            Order.objects.aggregate(Sum("total_excl_tax"))["total_excl_tax__sum"] or 0
+        )
+        total_customers = User.objects.filter(is_staff=False).count()
+        total_orders = Order.objects.count()
+        total_products = Product.objects.count()
+        recent_activities = ActivityLog.objects.all().order_by("-timestamp")[:10]
+
+        context["total_sales"] = total_sales
+        context["total_customers"] = total_customers
+        context["total_orders"] = total_orders
+        context["total_products"] = total_products
+        context["recent_activities"] = recent_activities
+        context["monthly_sales"] = self.get_monthly_sales_data()
+        context["order_status_data"] = self.get_order_status_data()
+        context["top_selling_products"] = self.get_top_selling_products()
+
+        context["product_by_category_data"] = self.get_product_by_category_data()
+
         return context
 
 
@@ -107,3 +199,35 @@ class UserRecentActivityView(LoginRequiredMixin, ListView):
         # ถ้าไม่ใช่ HTMX request (เช่น เข้า URL นี้ตรงๆ) อาจจะ render ใน context ของหน้าอื่น หรือ redirect
         # หรือจะใช้ template เดิมก็ได้ ขึ้นอยู่กับว่าต้องการให้ URL นี้เข้าถึงโดยตรงได้หรือไม่
         return [self.template_name]  # หรือ template อื่นที่เหมาะสมถ้าไม่ใช่ HTMX
+
+
+class SalesChartHTMXView(DashboardUserView):
+    """
+    View นี้จะถูกเรียกโดย HTMX เพื่อส่งเฉพาะ HTML ของกราฟ Sales
+    """
+
+    template_name = "dashboard/user/partials/charts/sales_over_time.html"
+
+
+class OrderStatusChartHTMXView(DashboardUserView):
+    """
+    View นี้จะถูกเรียกโดย HTMX เพื่อส่งเฉพาะ HTML ของกราฟ Order Status
+    """
+
+    template_name = "dashboard/user/partials/charts/order_status.html"
+
+
+class ProductCategoryChartHTMXView(DashboardUserView):
+    """
+    View นี้จะถูกเรียกโดย HTMX เพื่อส่งเฉพาะ HTML ของกราฟ Product Category
+    """
+
+    template_name = "dashboard/user/partials/charts/products_by_category.html"
+
+
+class SummaryCardsHTMXView(DashboardUserView):
+    """
+    View นี้จะถูกเรียกโดย HTMX เพื่อส่งเฉพาะ HTML ของการ์ดข้อมูลสรุป
+    """
+
+    template_name = "dashboard/user/partials/summary_cards.html"

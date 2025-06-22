@@ -1,19 +1,31 @@
-{% load i18n %}
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <div class="md:col-span-2 bg-white p-6 rounded-lg shadow">
-        <h3 class="text-base sm:text-lg font-medium text-gray-900 mb-4">{% trans "Customer Demographics" %}</h3>
-        <div class="h-48 bg-gray-50 rounded p-2">
-             <canvas id="ageDistributionChart"></canvas>
-        </div>
+{% load static %}
+<div class="grid grid-cols-12 gap-6">
+
+    <!-- กราฟ Donut Chart (Order Status) -->
+    <div
+        class="flex flex-col col-span-full sm:col-span-6 bg-white dark:bg-slate-800 shadow-lg rounded-sm border border-slate-200 dark:border-slate-700">
+        <header class="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+            <h2 class="font-semibold text-slate-800 dark:text-slate-100">Order Status Distribution</h2>
+        </header>
+
+        <canvas id="doughnut-chart" width="400" height="200"></canvas>
+        
+        <!-- FIXED: Use json_script for safe data transfer -->
+        {{order_status_data}}
+        {{ order_status_data|json_script:"doughnut-chart-data" }}
     </div>
-    <div class="space-y-6">
-        <div class="bg-white p-6 rounded-lg shadow text-center">
-            <p class="text-2xl sm:text-3xl font-semibold text-gray-900">$1,200</p> {# Example data #}
-            <p class="text-xs sm:text-sm text-gray-500">{% trans "Total Revenue" %}</p>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow text-center">
-            <p class="text-2xl sm:text-3xl font-semibold text-gray-900">40</p> {# Example data #}
-            <p class="text-xs sm:text-sm text-gray-500">{% trans "New Customers" %}</p>
-        </div>
+
+    <!-- กราฟใหม่: Products by Category (Pie Chart) -->
+    <div class="flex flex-col col-span-full sm:col-span-6 bg-white dark:bg-slate-800 shadow-lg rounded-sm border border-slate-200 dark:border-slate-700">
+        <header class="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+            <h2 class="font-semibold text-slate-800 dark:text-slate-100">Products by Category</h2>
+        </header>
+        <canvas id="pie-chart-categories" width="400" height="200"></canvas>
+        
+        <!-- FIXED: Use json_script for safe data transfer -->
+        {{ product_by_category_data|json_script:"category-chart-data" }}
     </div>
+
 </div>
+
+

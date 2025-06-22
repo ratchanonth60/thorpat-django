@@ -1,11 +1,19 @@
 from django.urls import include, path
 
-from .users.views import UserInfoView, UserProfileUpdateView, UserRecentActivityView
+from .users.views import (
+    DashboardUserView,
+    OrderStatusChartHTMXView,
+    ProductCategoryChartHTMXView,
+    SalesChartHTMXView,
+    SummaryCardsHTMXView,
+    UserProfileUpdateView,
+    UserRecentActivityView,
+)
 
 app_name = "dashboard"
 
 urlpatterns = [
-    path("user/", UserInfoView.as_view(), name="user_info"),
+    path("user/", DashboardUserView.as_view(), name="user_info"),
     path("user/update/", UserProfileUpdateView.as_view(), name="user_update"),
     path(
         "user/recent-activity/",
@@ -36,5 +44,21 @@ urlpatterns = [
     ),
     path(
         "reports/", include("thorpat.apps.dashboard.report.urls", namespace="reports")
+    ),
+    path("charts/sales/", SalesChartHTMXView.as_view(), name="chart-sales"),
+    path(
+        "charts/order-status/",
+        OrderStatusChartHTMXView.as_view(),
+        name="chart-order-status",
+    ),
+    path(
+        "charts/products-by-category/",
+        ProductCategoryChartHTMXView.as_view(),
+        name="chart-products-by-category",
+    ),
+    path(
+        "summary-cards/",
+        SummaryCardsHTMXView.as_view(),
+        name="summary-cards",
     ),
 ]

@@ -1,15 +1,16 @@
 {% load i18n %}
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <div class="lg:col-span-2 bg-white p-4 sm:p-6 rounded-lg shadow">
-        <h3 class="text-base sm:text-lg font-medium text-gray-900 mb-4">{% trans "Monthly Revenue" %}</h3>
-        <div class="h-64 sm:h-72 bg-gray-50 rounded p-2">
-            <canvas id="monthlyRevenueChart"></canvas>
-        </div>
-    </div>
-    <div class="bg-white p-4 sm:p-6 rounded-lg shadow">
-        <h3 class="text-base sm:text-lg font-medium text-gray-900 mb-4">{% trans "Daily Sales" %}</h3>
-        <div class="h-64 sm:h-72 bg-gray-50 rounded p-2">
-             <canvas id="dailySalesChart"></canvas>
-        </div>
+<div class="grid grid-cols-12 gap-6">
+
+    <!-- Bar chart (Sales Over Time) -->
+    <div
+        class="flex flex-col col-span-full sm:col-span-12 bg-white dark:bg-slate-800 shadow-lg rounded-sm border border-slate-200 dark:border-slate-700">
+        <header class="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+            <h2 class="font-semibold text-slate-800 dark:text-slate-100">Sales Over Time</h2>
+        </header>
+
+        <canvas id="bar-chart" width="800" height="300"></canvas>
+        
+        <!-- FIXED: Use json_script for safe data transfer -->
+        {{ monthly_sales|json_script:"bar-chart-data" }}
     </div>
 </div>

@@ -1,0 +1,9 @@
+{% load static %}
+<header class="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+    <h2 class="font-semibold text-slate-800 dark:text-slate-100">Products by Category</h2>
+</header>
+<div class="flex-grow flex items-center justify-center p-4">
+    <!-- FIXED: Changed canvas to div for ApexCharts -->
+    <div id="pie-chart-categories"></div>
+</div>
+{{ product_by_category_data|json_script:"category-chart-data" }}

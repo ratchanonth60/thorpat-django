@@ -1,0 +1,10 @@
+{% load static %}
+<header class="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+    <h2 class="font-semibold text-slate-800 dark:text-slate-100">Order Status Distribution</h2>
+</header>
+<div class="flex-grow flex items-center justify-center p-4">
+    <!-- FIXED: Changed canvas to div for ApexCharts -->
+    <div id="doughnut-chart"></div>
+</div>
+{{ order_status_data|json_script:"doughnut-chart-data" }}
+

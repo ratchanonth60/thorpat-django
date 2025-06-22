@@ -1,0 +1,56 @@
+{% load i18n %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    
+    <!-- Total Sales Card -->
+    <div class="bg-gradient-to-br from-blue-400 to-indigo-600 text-white shadow-lg rounded-lg p-5">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="text-sm font-light">{% trans "Total Sales" %}</div>
+                <div class="text-3xl font-bold">${{ total_sales|floatformat:2 }}</div>
+            </div>
+            <div class="text-5xl opacity-50">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Total Customers Card -->
+    <div class="bg-gradient-to-br from-green-400 to-teal-600 text-white shadow-lg rounded-lg p-5">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="text-sm font-light">{% trans "Total Customers" %}</div>
+                <div class="text-3xl font-bold">{{ total_customers }}</div>
+            </div>
+            <div class="text-5xl opacity-50">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Orders Card -->
+    <div class="bg-gradient-to-br from-yellow-400 to-orange-600 text-white shadow-lg rounded-lg p-5">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="text-sm font-light">{% trans "Total Orders" %}</div>
+                <div class="text-3xl font-bold">{{ total_orders }}</div>
+            </div>
+            <div class="text-5xl opacity-50">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Total Products Card -->
+    <div class="bg-gradient-to-br from-red-400 to-pink-600 text-white shadow-lg rounded-lg p-5">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="text-sm font-light">{% trans "Total Products" %}</div>
+                <div class="text-3xl font-bold">{{ total_products }}</div>
+            </div>
+            <div class="text-5xl opacity-50">
+                <i class="fas fa-box"></i>
+            </div>
+        </div>
+    </div>
+</div>
+

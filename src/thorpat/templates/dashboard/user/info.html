@@ -2,100 +2,76 @@
 {% load i18n %}
 {% load static %}
 
-{% block dashboard_title %}{% trans "User Overview" %}{% endblock dashboard_title %}
-
-{% block dashboard_page_title %}{% trans "Overview" %}{% endblock dashboard_page_title %}
-
+{% block dashboard_title %}{% trans "Dashboard" %}{% endblock %}
+{% block extra_head_dashboard %}
+    {{ block.super }}
+    <!-- Load charting library in the <head> to ensure it's available before the body runs -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    
+    <!-- Load our custom chart script, 'defer' ensures it runs after the document is parsed -->
+    <script src="{% static 'js/dashboard_info_charts.js' %}" defer></script>
+{% endblock %}
 {% block dashboard_content %}
-<div class="space-y-6">
-    {% include "dashboard/user/partials/_info_welcome_banner.html" %}
-    
-    {% include "dashboard/user/partials/_info_charts_row1.html" %}
+    <div class="space-y-6">
 
-    {% include "dashboard/user/partials/_info_top_products_table.html" %}
-    
-    {% include "dashboard/user/partials/_info_charts_row2.html" %}
+        <!-- Welcome Banner -->
+        {% include "dashboard/user/partials/_info_welcome_banner.html" %}
 
-    {# This section could also be a partial if it grows #}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-         <div class="md:col-start-3 space-y-6"> {# Align with the single column metrics above #}
-            <div class="bg-white p-6 rounded-lg shadow text-center">
-                <p class="text-2xl sm:text-3xl font-semibold text-gray-900">250</p> {# Example data #}
-                <p class="text-xs sm:text-sm text-gray-500">{% trans "Units Sold" %}</p>
-            </div>
-            <div class="bg-white p-6 rounded-lg shadow text-center">
-                <p class="text-xl sm:text-2xl font-semibold text-green-600">{% trans "All Good!" %}</p>
-                <p class="text-xs sm:text-sm text-gray-500">{% trans "System Status" %}</p>
+        <!-- แถวที่ 1: แสดงการ์ดข้อมูลสรุป -->
+        <div hx-get="{% url 'dashboard:summary-cards' %}" hx-trigger="load once" hx-swap="outerHTML">
+            <!-- ส่วนนี้คือ Placeholder ที่จะแสดงระหว่างรอโหลด -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white ... h-[92px] animate-pulse"></div>
+                <div class="bg-white ... h-[92px] animate-pulse"></div>
+                <div class="bg-white ... h-[92px] animate-pulse"></div>
+                <div class="bg-white ... h-[92px] animate-pulse"></div>
             </div>
         </div>
+        <!-- แถวที่ 2: กราฟ (จะถูกโหลดโดย HTMX) -->
+        <div class="grid grid-cols-12 gap-6">
+            
+            <!-- Sales Chart Container -->
+            <div class="col-span-full flex flex-col bg-white dark:bg-slate-800 shadow-lg rounded-sm border border-slate-200 dark:border-slate-700"
+                 hx-get="{% url 'dashboard:chart-sales' %}"
+                 hx-trigger="load once">
+                <div class="flex-grow flex items-center justify-center h-[412px]">
+                    <div class="text-slate-500">Loading Sales Chart...</div>
+                </div>
+            </div>
+
+            <!-- Order Status Chart Container -->
+            <div class="col-span-full sm:col-span-6 flex flex-col bg-white dark:bg-slate-800 shadow-lg rounded-sm border border-slate-200 dark:border-slate-700"
+                 hx-get="{% url 'dashboard:chart-order-status' %}"
+                 hx-trigger="load once">
+                 <div class="flex-grow flex items-center justify-center h-80">
+                    <div class="text-slate-500">Loading Order Status Chart...</div>
+                </div>
+            </div>
+        
+            <!-- Products by Category Chart Container -->
+            <div class="col-span-full sm:col-span-6 flex flex-col bg-white dark:bg-slate-800 shadow-lg rounded-sm border border-slate-200 dark:border-slate-700"
+                 hx-get="{% url 'dashboard:chart-products-by-category' %}"
+                 hx-trigger="load once">
+                <div class="flex-grow flex items-center justify-center h-80">
+                    <div class="text-slate-500">Loading Category Chart...</div>
+                </div>
+            </div>
+
+        </div>        
+        
+      <!-- แถวที่ 3: ตารางข้อมูล -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2">
+                {% include "dashboard/user/partials/_info_top_products_table.html" %}
+            </div>
+            <div>
+                 {% include "dashboard/user/partials/recent_activity_list.html" %}
+            </div>
+        </div>
+
     </div>
-
-
-</div>
 {% endblock dashboard_content %}
 
-{% block extra_scripts %}
-{{ block.super }}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Example: Monthly Revenue Chart
-        const revenueCtx = document.getElementById('monthlyRevenueChart')?.getContext('2d');
-        if (revenueCtx) {
-            new Chart(revenueCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'], // Example labels
-                    datasets: [{
-                        label: '{% trans "Revenue" %}',
-                        data: [1200, 1900, 3000, 5000, 2300, 3200], // Example data
-                        borderColor: 'rgb(75, 192, 192)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                        tension: 0.4,
-                        fill: true,
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-            });
-        }
-
-        // Example: Daily Sales Chart
-        const salesCtx = document.getElementById('dailySalesChart')?.getContext('2d');
-        if (salesCtx) {
-            new Chart(salesCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], // Example labels
-                    datasets: [{
-                        label: '{% trans "Sales" %}',
-                        data: [12, 19, 30, 50, 23, 32, 45], // Example data
-                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-            });
-        }
-
-        // Example: Age Distribution Chart
-        const ageCtx = document.getElementById('ageDistributionChart')?.getContext('2d');
-        if (ageCtx) {
-            new Chart(ageCtx, {
-                type: 'bar', // Consider 'pie' or 'doughnut' for demographics too
-                data: {
-                    labels: ['18-24', '25-34', '35-44', '45-54', '55+'], // Example labels
-                    datasets: [{
-                        label: '{% trans "Customers" %}',
-                        data: [3, 7, 10, 8, 2], // Example data
-                        backgroundColor: 'rgba(153, 102, 255, 0.6)',
-                        borderColor: 'rgba(153, 102, 255, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, indexAxis: 'x' }
-            });
-        }
-    });
-</script>
+{% block extra_scripts_dashboard %}
+    {{ block.super }}
 {% endblock %}

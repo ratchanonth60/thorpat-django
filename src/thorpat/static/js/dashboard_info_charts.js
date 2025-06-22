@@ -1,59 +1,184 @@
-document.addEventListener('DOMContentLoaded', function () {
-    // Make sure chartTranslations is defined in the HTML template before this script is loaded
-    // e.g., <script> const chartTranslations = { revenue: "{% trans 'Revenue' %}", ... }; </script>
-
-    const revenueCtx = document.getElementById('monthlyRevenueChart')?.getContext('2d');
-    if (revenueCtx && typeof chartTranslations !== 'undefined' && chartTranslations.revenue) {
-        new Chart(revenueCtx, {
-            type: 'line',
-            data: {
-                labels: ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-                datasets: [{
-                    label: chartTranslations.revenue, // Using translated label
-                    data: [1200, 1900, 3000, 5000, 2300, 3200],
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                    tension: 0.4,
-                    fill: true,
-                }]
+/**
+ * ฟังก์ชันสำหรับสร้าง Area Chart (กราฟพื้นที่) ด้วย ApexCharts
+ * @param {HTMLElement} chartElement - The div element to render the chart in.
+ * @param {string[]} labels - The labels for the x-axis.
+ * @param {number[]} data - The data points for the series.
+ */
+function createAreaChart(chartElement, labels, data) {
+    const options = {
+        chart: {
+            height: 350,
+            type: 'area',
+            toolbar: {
+                show: false,
             },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-        });
+        },
+        dataLabels: {
+            enabled: false
+        },
+        stroke: {
+            curve: 'smooth'
+        },
+        series: [{
+            name: 'Total Sales',
+            data: data
+        }],
+        xaxis: {
+            type: 'category',
+            categories: labels,
+        },
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shadeIntensity: 1,
+                opacityFrom: 0.7,
+                opacityTo: 0.9,
+                stops: [0, 90, 100]
+            }
+        },
+        tooltip: {
+            y: {
+                formatter: function (val) {
+                    return "$ " + val.toFixed(2)
+                }
+            }
+        },
+        theme: {
+            mode: document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+        }
+    };
+
+    const chart = new ApexCharts(chartElement, options);
+    chart.render();
+}
+
+/**
+ * ฟังก์ชันสำหรับสร้าง Doughnut Chart (กราฟโดนัท) ด้วย ApexCharts
+ * @param {HTMLElement} chartElement - The div element to render the chart in.
+ * @param {string[]} labels - The labels for each slice.
+ * @param {number[]} data - The data for each slice.
+ */
+function createDoughnutChart(chartElement, labels, data) {
+    const options = {
+        series: data,
+        chart: {
+            type: 'donut',
+            height: 320,
+        },
+        labels: labels,
+        plotOptions: {
+          pie: {
+            donut: {
+              labels: {
+                show: true,
+                total: {
+                  showAlways: true,
+                  show: true,
+                  label: 'Total Orders',
+                }
+              }
+            }
+          }
+        },
+        responsive: [{
+            breakpoint: 480,
+            options: {
+                chart: {
+                    width: 250
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }],
+        theme: {
+            mode: document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+        }
+    };
+
+    const chart = new ApexCharts(chartElement, options);
+    chart.render();
+}
+
+/**
+ * ฟังก์ชันสำหรับสร้าง Pie Chart (กราฟวงกลม) ด้วย ApexCharts
+ * @param {HTMLElement} chartElement - The div element to render the chart in.
+ * @param {string[]} labels - The labels for each slice.
+ * @param {number[]} data - The data for each slice.
+ */
+function createPieChart(chartElement, labels, data) {
+    const options = {
+        series: data,
+        chart: {
+            type: 'donut', // ใช้ donut เพื่อความสวยงาม
+            height: 320,
+        },
+        labels: labels,
+        responsive: [{
+            breakpoint: 480,
+            options: {
+                chart: {
+                    width: 250
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }],
+        theme: {
+            mode: document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+        }
+    };
+
+    const chart = new ApexCharts(chartElement, options);
+    chart.render();
+}
+
+/**
+ * ฟังก์ชันสำหรับค้นหาและวาดกราฟภายใน container ที่กำหนด
+ * @param {HTMLElement} container - The element to search for charts within.
+ */
+function initializeChartsInContainer(container) {
+    // Sales Chart (Area)
+    const areaChartEl = container.querySelector('#bar-chart');
+    if (areaChartEl) {
+        const barDataElement = document.getElementById('bar-chart-data');
+        if (barDataElement) {
+            const chartData = JSON.parse(barDataElement.textContent);
+            if (chartData && chartData.labels.length > 0) {
+               createAreaChart(areaChartEl, chartData.labels, chartData.data);
+            }
+        }
     }
 
-    const salesCtx = document.getElementById('dailySalesChart')?.getContext('2d');
-    if (salesCtx && typeof chartTranslations !== 'undefined' && chartTranslations.sales) {
-        new Chart(salesCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                datasets: [{
-                    label: chartTranslations.sales, // Using translated label
-                    data: [12, 19, 30, 50, 23, 32, 45],
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-        });
+    // Order Status Chart (Doughnut)
+    const doughnutChartEl = container.querySelector('#doughnut-chart');
+    if (doughnutChartEl) {
+        const doughnutDataElement = document.getElementById('doughnut-chart-data');
+        if (doughnutDataElement) {
+            const doughnutChartData = JSON.parse(doughnutDataElement.textContent);
+            if (doughnutChartData && doughnutChartData.labels.length > 0) {
+                createDoughnutChart(doughnutChartEl, doughnutChartData.labels, doughnutChartData.data);
+            }
+        }
     }
 
-    const ageCtx = document.getElementById('ageDistributionChart')?.getContext('2d');
-    if (ageCtx && typeof chartTranslations !== 'undefined' && chartTranslations.customers) {
-        new Chart(ageCtx, {
-            type: 'bar',
-            data: {
-                labels: ['18-24', '25-34', '35-44', '45-54', '55+'],
-                datasets: [{
-                    label: chartTranslations.customers, // Using translated label
-                    data: [3, 7, 10, 8, 2],
-                    backgroundColor: 'rgba(153, 102, 255, 0.6)',
-                    borderColor: 'rgba(153, 102, 255, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, indexAxis: 'x' }
-        });
+    // Products by Category Chart (Pie/Donut)
+    const pieChartEl = container.querySelector('#pie-chart-categories');
+    if (pieChartEl) {
+        const categoryDataElement = document.getElementById('category-chart-data');
+        if (categoryDataElement) {
+            const categoryChartData = JSON.parse(categoryDataElement.textContent);
+            if (categoryChartData && categoryChartData.labels.length > 0) {
+               createPieChart(pieChartEl, categoryChartData.labels, categoryChartData.data);
+            }
+        }
     }
+}
+
+// เพิ่ม Event Listener ให้รอฟังสัญญาณจาก HTMX
+document.body.addEventListener('htmx:afterSwap', function(event) {
+    console.log("HTMX content swapped, initializing ApexCharts in:", event.detail.target);
+    initializeChartsInContainer(event.detail.target);
 });
+
