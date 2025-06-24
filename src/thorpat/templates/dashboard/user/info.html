@@ -31,7 +31,8 @@
         <div class="grid grid-cols-12 gap-6">
             
             <!-- Sales Chart Container -->
-            <div class="col-span-full flex flex-col bg-white dark:bg-slate-800 shadow-lg rounded-sm border border-slate-200 dark:border-slate-700"
+            <!-- FIXED: เพิ่ม class 'chart-container' เพื่อให้ hx-target ทำงานถูกต้อง -->
+            <div class="col-span-full flex flex-col bg-white dark:bg-slate-800 shadow-lg rounded-sm border border-slate-200 dark:border-slate-700 chart-container"
                  hx-get="{% url 'dashboard:chart-sales' %}"
                  hx-trigger="load once">
                 <div class="flex-grow flex items-center justify-center h-[412px]">
@@ -40,7 +41,7 @@
             </div>
 
             <!-- Order Status Chart Container -->
-            <div class="col-span-full sm:col-span-6 flex flex-col bg-white dark:bg-slate-800 shadow-lg rounded-sm border border-slate-200 dark:border-slate-700"
+            <div class="col-span-full sm:col-span-6 flex flex-col bg-white dark:bg-slate-800 shadow-lg rounded-sm border border-slate-200 dark:border-slate-700 chart-container"
                  hx-get="{% url 'dashboard:chart-order-status' %}"
                  hx-trigger="load once">
                  <div class="flex-grow flex items-center justify-center h-80">
@@ -49,7 +50,7 @@
             </div>
         
             <!-- Products by Category Chart Container -->
-            <div class="col-span-full sm:col-span-6 flex flex-col bg-white dark:bg-slate-800 shadow-lg rounded-sm border border-slate-200 dark:border-slate-700"
+            <div class="col-span-full sm:col-span-6 flex flex-col bg-white dark:bg-slate-800 shadow-lg rounded-sm border border-slate-200 dark:border-slate-700 chart-container"
                  hx-get="{% url 'dashboard:chart-products-by-category' %}"
                  hx-trigger="load once">
                 <div class="flex-grow flex items-center justify-center h-80">

@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Count, Sum
+from django.db.models.functions import TruncDay, TruncMonth
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.template.loader import render_to_string
@@ -24,6 +25,35 @@ class StaffRequiredMixin(UserPassesTestMixin):
 
 class DashboardUserView(StaffRequiredMixin, TemplateView):
     template_name = "dashboard/user/info.html"
+
+    def calculate_sales_data(self, queryset, period):
+        """
+        ฟังก์ชันใหม่สำหรับคำนวณและจัดกลุ่มข้อมูลยอดขายตามช่วงเวลาที่เลือก
+        - ถ้าเป็นรายวัน (7, 30 วัน) จะจัดกลุ่มข้อมูลเป็นรายวัน
+        - ถ้าเป็นรายปีหรือทั้งหมด จะจัดกลุ่มข้อมูลเป็นรายเดือน
+        """
+        if period in ["last_7_days", "last_30_days"]:
+            # จัดกลุ่มข้อมูลเป็นรายวัน
+            sales = (
+                queryset.annotate(day=TruncDay("date_placed"))
+                .values("day")
+                .annotate(total=Sum("total_excl_tax"))
+                .order_by("day")
+            )
+            labels = [s["day"].strftime("%b %d") for s in sales]
+            data = [float(s["total"]) for s in sales]
+            return {"labels": labels, "data": data}
+        else:  # this_year, all_time
+            # จัดกลุ่มข้อมูลเป็นรายเดือน
+            sales = (
+                queryset.annotate(month=TruncMonth("date_placed"))
+                .values("month")
+                .annotate(total=Sum("total_excl_tax"))
+                .order_by("month")
+            )
+            labels = [s["month"].strftime("%B %Y") for s in sales]
+            data = [float(s["total"]) for s in sales]
+            return {"labels": labels, "data": data}
 
     def get_monthly_sales_data(self):
         # Generate a list of months for the last year
@@ -102,24 +132,75 @@ class DashboardUserView(StaffRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        total_sales = (
+
+        # 1. รับค่า 'period' จาก request, ถ้าไม่มีให้ใช้ 'this_year' เป็นค่าเริ่มต้น
+        period = self.request.GET.get("period", "this_year")
+
+        # 2. สร้าง Queryset เริ่มต้นและกรองข้อมูลตาม 'period'
+        orders_qs = Order.objects.all()
+        today = timezone.now()
+
+        if period == "last_7_days":
+            start_date = today - timedelta(days=7)
+            orders_qs = orders_qs.filter(date_placed__gte=start_date)
+        elif period == "last_30_days":
+            start_date = today - timedelta(days=30)
+            orders_qs = orders_qs.filter(date_placed__gte=start_date)
+        elif period == "this_year":
+            orders_qs = orders_qs.filter(date_placed__year=today.year)
+        # ถ้าเป็น 'all_time' ก็ไม่ต้องกรอง
+
+        # Context สำหรับการ์ดสรุปและตาราง (คำนวณจากข้อมูลทั้งหมด)
+        context["total_sales"] = (
             Order.objects.aggregate(Sum("total_excl_tax"))["total_excl_tax__sum"] or 0
         )
-        total_customers = User.objects.filter(is_staff=False).count()
-        total_orders = Order.objects.count()
-        total_products = Product.objects.count()
-        recent_activities = ActivityLog.objects.all().order_by("-timestamp")[:10]
+        context["total_customers"] = User.objects.filter(is_staff=False).count()
+        context["total_orders"] = Order.objects.count()
+        context["total_products"] = Product.objects.count()
+        context["recent_activities"] = ActivityLog.objects.all().order_by("-timestamp")[
+            :10
+        ]
+        context["top_selling_products"] = (
+            OrderLine.objects.values("product__title")
+            .annotate(total_quantity=Sum("quantity"))
+            .order_by("-total_quantity")[:5]
+        )
 
-        context["total_sales"] = total_sales
-        context["total_customers"] = total_customers
-        context["total_orders"] = total_orders
-        context["total_products"] = total_products
-        context["recent_activities"] = recent_activities
-        context["monthly_sales"] = self.get_monthly_sales_data()
-        context["order_status_data"] = self.get_order_status_data()
-        context["top_selling_products"] = self.get_top_selling_products()
+        # Context สำหรับกราฟ (คำนวณจากข้อมูลที่กรองแล้ว)
+        context["monthly_sales"] = self.calculate_sales_data(orders_qs, period)
+        context["order_status_data"] = {
+            "labels": [
+                dict(Order.STATUS_CHOICES).get(item["status"], item["status"])
+                for item in Order.objects.values("status")
+                .annotate(count=Count("status"))
+                .order_by("status")
+                if item["status"]
+            ],
+            "data": [
+                item["count"]
+                for item in Order.objects.values("status")
+                .annotate(count=Count("status"))
+                .order_by("status")
+                if item["status"]
+            ],
+        }
+        context["product_by_category_data"] = {
+            "labels": [
+                c.name
+                for c in ProductCategory.objects.annotate(n=Count("products")).filter(
+                    n__gt=0
+                )
+            ],
+            "data": [
+                c.n
+                for c in ProductCategory.objects.annotate(n=Count("products")).filter(
+                    n__gt=0
+                )
+            ],
+        }
 
-        context["product_by_category_data"] = self.get_product_by_category_data()
+        # ส่งค่า period กลับไปให้ template เพื่อให้ dropdown แสดงค่าที่เลือกไว้ถูกต้อง
+        context["period"] = period
 
         return context
 

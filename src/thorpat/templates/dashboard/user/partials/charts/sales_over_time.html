@@ -1,9 +1,30 @@
 {% load static %}
-<header class="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+<header class="px-5 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
     <h2 class="font-semibold text-slate-800 dark:text-slate-100">Sales Over Time</h2>
+    
+    <!-- ฟอร์มสำหรับกรองข้อมูล -->
+    <form>
+        <select name="period" 
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                hx-get="{% url 'dashboard:chart-sales' %}"
+                hx-target="closest .chart-container"
+                hx-swap="innerHTML"
+                hx-indicator="#sales-chart-spinner">
+            <option value="last_7_days" {% if period == 'last_7_days' %}selected{% endif %}>Last 7 Days</option>
+            <option value="last_30_days" {% if period == 'last_30_days' %}selected{% endif %}>Last 30 Days</option>
+            <option value="this_year" {% if period == 'this_year' %}selected{% endif %}>This Year</option>
+            <option value="all_time" {% if period == 'all_time' %}selected{% endif %}>All Time</option>
+        </select>
+    </form>
 </header>
-<div class="flex-grow p-4">
-    <!-- FIXED: Changed canvas to div for ApexCharts -->
-    <div id="bar-chart"></div>
+<div class="flex-grow p-4 relative">
+    <!-- พื้นที่สำหรับวาดกราฟ ApexChart -->
+    <div id="bar-chart" class="min-h-[350px]"></div>
+    
+    <!-- Spinner ที่จะแสดงระหว่างรอโหลดข้อมูล -->
+    <div id="sales-chart-spinner" class="htmx-indicator absolute inset-0 bg-white/50 dark:bg-slate-800/50 flex items-center justify-center">
+        <div class="text-slate-500">Loading...</div>
+    </div>
 </div>
+<!-- ข้อมูลสำหรับกราฟ -->
 {{ monthly_sales|json_script:"bar-chart-data" }}
