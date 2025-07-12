@@ -92,7 +92,6 @@
                     >
                       <i class="fas fa-minus"></i>
                     </button>
-                    {# Apply form_filters for quantity input styling #}
                     {{ item.form.quantity|add_class:"w-16 text-center border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-sm" }}
                     <button
                       type="button"
@@ -102,16 +101,8 @@
                       <i class="fas fa-plus"></i>
                     </button>
                   </div>
-                  {# Save button (can be hidden if hx-trigger is on quantity change) #}
-                  {# For a cleaner UX, consider triggering HTMX `hx-trigger="change"` on the input directly, then this save button might not be needed for quantity updates #}
-                  <button
-                    type="submit"
-                    class="ml-2 p-2 text-gray-500 hover:text-indigo-600 rounded-full hidden" {# Hidden save button, as JS will trigger HTMX on quantity change #}
-                  >
-                    <i class="fas fa-save"></i>
-                  </button>
                 </form>
-              </td>
+              </td>     
               {# Price per item #}
               <td class="py-4 px-6 text-right font-medium text-gray-700">
                 ฿{{ item.line.price_excl_tax|floatformat:2 }}
@@ -177,26 +168,6 @@
 
 {% block extra_scripts %}
 {{ block.super }} {# Include scripts from parent templates #}
-<script>
-  // Function to update quantity and trigger HTMX
-  function updateQuantity(button, change) {
-    const form = button.closest("form");
-    const quantityInput = form.querySelector('input[name="quantity"]');
-    let currentValue = parseInt(quantityInput.value);
-    let newValue = currentValue + change;
-
-    // Ensure quantity is at least 1
-    if (newValue < 1) {
-      newValue = 1;
-    }
-
-    // Only update if value actually changes to avoid unnecessary requests
-    if (newValue !== currentValue) {
-      quantityInput.value = newValue;
-      // Trigger HTMX request on the form to update the line item
-      htmx.trigger(form, "submit");
-    }
-  }
-</script>
+<script src="{% static 'js/cart.js' %}" defer></script>
 {% endblock %}
 

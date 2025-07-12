@@ -1,7 +1,7 @@
-from django.http import HttpResponseRedirect
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
-from django.contrib.auth.mixins import LoginRequiredMixin
 
 from thorpat.apps.catalogue.forms import ProductForm, StockRecordFormSet
 from thorpat.apps.catalogue.models import Product, StockRecord
@@ -55,26 +55,32 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
             return self.form_invalid(form, formset)
 
     def form_valid(self, form, formset):
-        """
-        If the forms are valid, save the associated models.
-        """
+        """If the forms are valid, save the associated models."""
         self.object = form.save(commit=False)
         self.object.user = self.request.user
         self.object.save()
+        form.save_m2m()  # Important for ManyToMany fields like categories
 
         formset.instance = self.object
         formset.save()
 
+        # For HTMX, redirect using a header instead of a direct response
+        if self.request.htmx:
+            response = HttpResponse()
+            response["HX-Redirect"] = self.get_success_url()
+            return response
+
         return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form, formset):
-        """
-        If the forms are invalid, re-render the context data with the
-        data-filled forms and errors.
-        """
-        return self.render_to_response(
-            self.get_context_data(form=form, stockrecord_formset=formset)
-        )
+        """If the forms are invalid, re-render the context."""
+        # For HTMX, we just re-render the form part of the page
+        if self.request.htmx:
+            return self.render_to_response(
+                self.get_context_data(form=form, stockrecord_formset=formset),
+                status=422,  # Unprocessable Entity, indicates form error
+            )
+        return super().form_invalid(form)
 
 
 class ProductUpdateView(LoginRequiredMixin, UpdateView):
@@ -85,6 +91,18 @@ class ProductUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_queryset(self):
         return Product.objects.filter(user=self.request.user)
+
+    def form_valid(self, form):
+        if self.request.htmx:  # type: ignore
+            response = HttpResponse()
+            response["HX-Redirect"] = self.get_success_url()
+            return response
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        if self.request.htmx:  # type: ignore
+            return self.render_to_response(self.get_context_data(form=form), status=422)
+        return super().form_invalid(form)
 
     def get_form_kwargs(self):
         """Pass the user to the form."""
@@ -123,4 +141,3 @@ class ProductDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_queryset(self):
         return Product.objects.filter(user=self.request.user)
-

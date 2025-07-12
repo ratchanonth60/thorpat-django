@@ -56,7 +56,7 @@
                             <div class="mt-1">
                                 {# Apply form_filters for styling and add HTMX for real-time validation #}
                                 {% if field.name == 'login' %} {# 'login' field (username/email) for allauth #}
-                                    {{ field|add_class:"appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"|add_placeholder:field.label|attr:"hx-post:/users/validate_login/"|attr:"hx-trigger:changed delay:500ms"|attr:"hx-target:#login-error"|attr:"hx-swap:innerHTML" }}
+                                    {{ field|add_class:"appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"|add_placeholder:field.label|add_attr:"hx-post:/users/validate_login/"|add_attr:"hx-trigger:changed delay:500ms"|add_attr:"hx-target:#login-error"|add_attr:"hx-swap:innerHTML" }}
                                     <div id="login-error" class="text-red-500 text-xs mt-1 h-4"></div> {# Placeholder for HTMX validation messages #}
                                 {% elif field.name == 'password' %}
                                     {{ field|add_class:"appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"|add_placeholder:field.label }}

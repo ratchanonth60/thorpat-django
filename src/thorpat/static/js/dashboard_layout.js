@@ -2,8 +2,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // 1. หา element ที่จำเป็นทั้งหมด
     const sidebar = document.getElementById('sidebar');
     const mainContent = document.getElementById('main-content');
-    const sidebarToggle = document.getElementById('sidebar-toggle'); // ปุ่มพับ/กาง (Desktop)
-    const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle'); // ปุ่ม Hamburger (Mobile)
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
 
     // 2. ฟังก์ชันหลักสำหรับจัดการ Layout
     function updateLayout() {
@@ -32,20 +32,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // 3. ผูก Event Listeners
-
-    // ปุ่มพับ/กาง (Desktop)
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', () => {
             const isCurrentlyCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-            // สลับค่าและจำไว้ใน localStorage
             localStorage.setItem('sidebarCollapsed', !isCurrentlyCollapsed);
-            // อัปเดต Layout
             updateLayout();
         });
     }
 
-    // ปุ่ม Hamburger (Mobile)
     if (mobileSidebarToggle) {
         mobileSidebarToggle.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -53,7 +47,36 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 4. เรียกใช้ฟังก์ชันตอนเริ่มต้น และเมื่อปรับขนาดจอ
     updateLayout();
     window.addEventListener('resize', updateLayout);
+
+    // --- โค้ดที่เพิ่มเข้ามาสำหรับ Action Menu Dropdown ---
+    function closeAllActionMenus() {
+        document.querySelectorAll('.action-menu').forEach(function(menu) {
+            menu.classList.add('hidden');
+        });
+    }
+
+    // Event delegation for dynamically added action menus
+    document.body.addEventListener('click', function(event) {
+        const button = event.target.closest('.action-menu-button');
+        if (button) {
+            event.stopPropagation();
+            const menuId = button.dataset.menuId;
+            const targetMenu = document.getElementById(menuId);
+            
+            const isVisible = !targetMenu.classList.contains('hidden');
+            
+            closeAllActionMenus(); // ปิดเมนูอื่นก่อน
+            
+            if (!isVisible) {
+                targetMenu.classList.remove('hidden');
+            }
+        } else {
+            // ถ้าคลิกนอกเมนู ให้ปิดเมนูทั้งหมด
+            if (!event.target.closest('.action-menu')) {
+                closeAllActionMenus();
+            }
+        }
+    });
 });

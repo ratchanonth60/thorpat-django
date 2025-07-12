@@ -6,26 +6,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block dashboard_title %}{% trans "Dashboard" %}{% endblock dashboard_title %} - Thorpat</title>
+    
+    {# External CSS #}
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
+    {# Our Custom CSS #}
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    
+    {# External JS #}
     <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
-    <meta name="csrf-token" content="{{ csrf_token }}"> {# For htmx_csrf_config.js #}
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <style>
-        /* Styles from your file */
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #2d3748; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #718096; }
-        .active-sidebar-link { background-color: #4a5568; color: #ffffff; }
-        .active-sidebar-link svg, .active-sidebar-link i { color: #ffffff; }
-        /* +++ CSS สำหรับควบคุมการพับ/กาง Sidebar +++ */
-        #sidebar { transition: width 0.3s ease-in-out; }
-        #main-content { transition: margin-left 0.3s ease-in-out; }
-        #sidebar.sidebar-collapsed .nav-text, #sidebar.sidebar-collapsed .brand-text { display: none; }
-        #sidebar.sidebar-collapsed .logout-text { display: none; }
-        #sidebar.sidebar-collapsed #sidebar-toggle .fa-chevron-left { transform: rotate(180deg); }
-    </style>
+    
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    
     {% block extra_head_dashboard %}{% endblock %}
 </head>
 <body class="bg-gray-100 font-sans antialiased {% block dashboard_body_class %}{% endblock %}">
@@ -81,6 +74,9 @@
         </header>
 
         <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-4 sm:p-6 custom-scrollbar">
+            {% if messages %}
+                {# Message handling block #}
+            {% endif %}
             {% block dashboard_content %}
                 <p>{% trans "Main dashboard content will go here." %}</p>
             {% endblock dashboard_content %}

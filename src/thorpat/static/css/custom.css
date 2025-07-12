@@ -1,0 +1,30 @@
+/* src/thorpat/static/css/custom.css */
+
+/* --- Styles from base_dashboard.html --- */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #2d3748; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 3px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #718096; }
+.active-sidebar-link { background-color: #4a5568; color: #ffffff; }
+.active-sidebar-link svg, .active-sidebar-link i { color: #ffffff; }
+
+/* CSS for Sidebar Toggle */
+#sidebar { transition: width 0.3s ease-in-out; }
+#main-content { transition: margin-left 0.3s ease-in-out; }
+#sidebar.sidebar-collapsed .nav-text, 
+#sidebar.sidebar-collapsed .brand-text,
+#sidebar.sidebar-collapsed .logout-text { 
+    display: none; 
+}
+#sidebar.sidebar-collapsed #sidebar-toggle .fa-chevron-left { transform: rotate(180deg); }
+
+/* --- Styles from payment_method.html --- */
+.htmx-indicator {
+    display: none;
+}
+.htmx-request .htmx-indicator {
+    display: inline-block;
+}
+.htmx-request.htmx-indicator {
+    display: inline-block;
+}

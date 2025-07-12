@@ -1,24 +1,22 @@
 from django import template
-from django.forms import BoundField  # นำเข้า BoundField
+from django.forms import BoundField
 
 register = template.Library()
 
-
-# ฟังก์ชันช่วยสำหรับเพิ่ม/แก้ไข attribute ใน widget.attrs
 def _set_widget_attr(field, attribute, value):
     """
-    Sets or adds an attribute to the widget of a form field.
-    Handles 'class' attribute by appending, others by setting.
+    Helper function to safely set or add an attribute to a form field's widget.
+    It returns the field object to allow for filter chaining.
     """
-    # ตรวจสอบให้แน่ใจว่าเป็น BoundField และมี widget
+    # Make sure we have a field that we can modify
     if not isinstance(field, BoundField) or not hasattr(field.field, "widget"):
-        return field  # คืนค่า field เดิมหากไม่สามารถแก้ไข widget ได้ (เช่นไม่ใช่ form field)
+        return field
 
-    # สร้าง mutable copy ของ attrs เพื่อป้องกันการแก้ไข shared dictionary
+    # Make a mutable copy of the widget's attributes
     attrs = field.field.widget.attrs.copy()
 
-    if attribute == "class":
-        # สำหรับ class attribute, ให้เพิ่ม class ใหม่เข้าไป
+    # Special handling for the 'class' attribute to append new classes
+    if attribute.lower() == "class":
         current_classes = attrs.get("class", "").split()
         new_classes = value.split()
         for cls in new_classes:
@@ -26,22 +24,21 @@ def _set_widget_attr(field, attribute, value):
                 current_classes.append(cls)
         attrs["class"] = " ".join(current_classes)
     else:
-        # สำหรับ attribute อื่นๆ, ให้ตั้งค่าโดยตรง
+        # For other attributes, just set or overwrite the value
         attrs[attribute] = value
 
-    # สร้าง widget ใหม่ที่มี attrs ที่แก้ไขแล้ว
-    # นี่เป็นวิธีที่ปลอดภัยกว่าการแก้ไข widget.attrs โดยตรง
-    # เนื่องจากบาง widget อาจไม่รองรับการแก้ไข attrs หลังจากสร้างแล้ว
+    # Update the widget's attributes dictionary
     field.field.widget.attrs = attrs
-
-    return field  # สำคัญ: คืนค่า field object กลับไป ไม่ใช่ HTML ที่ render แล้ว
+    
+    # IMPORTANT: Return the field object itself to allow for chaining
+    return field
 
 
 @register.filter(name="add_class")
 def add_class(field, css_class):
     """
     Adds a CSS class to a form field's widget.
-    Usage: {{ field|add_class:"your-class-name" }}
+    Usage: {{ field|add_class:"your-class" }}
     """
     return _set_widget_attr(field, "class", css_class)
 
@@ -50,39 +47,23 @@ def add_class(field, css_class):
 def add_placeholder(field, placeholder_text):
     """
     Adds a placeholder attribute to a form field's widget.
-    Usage: {{ field|add_placeholder:"Enter your value here" }}
+    Usage: {{ field|add_placeholder:"Your placeholder" }}
     """
     return _set_widget_attr(field, "placeholder", placeholder_text)
 
 
 @register.filter(name="add_attr")
-def add_attr(field, attributes_str):
+def add_attr(field, attr_str):
     """
-    Adds HTML attributes to a form field widget.
-
-    Usage:
-    {{ my_field|add_attr:"class: my-class, rows: 4, placeholder: Enter text" }}
+    Adds a single HTML attribute to a form field's widget. Allows chaining.
+    The attribute must be in "key:value" format.
+    Usage: {{ my_field|add_attr:"rows:4"|add_attr:"hx-post:/url/" }}
     """
-    # Start with the widget's existing attributes
-    attrs = field.field.widget.attrs.copy()
+    try:
+        # Split the input string into an attribute name and value
+        attr, value = attr_str.split(":", 1)
+        return _set_widget_attr(field, attr.strip(), value.strip())
+    except ValueError:
+        # If the format is wrong (e.g., no colon), just return the field unchanged
+        return field
 
-    # Split the attribute string by comma to handle multiple attributes
-    attributes = [attr.strip() for attr in attributes_str.split(",")]
-
-    for attribute in attributes:
-        # Split each attribute into key and value
-        try:
-            key, value = attribute.split(":", 1)
-            key = key.strip()
-            value = value.strip()
-
-            # For the 'class' attribute, append to existing classes
-            if key.lower() == "class":
-                attrs[key] = f"{attrs.get(key, '')} {value}".strip()
-            else:
-                attrs[key] = value
-        except ValueError:
-            # Ignore incorrectly formatted attributes
-            pass
-
-    return field.as_widget(attrs=attrs)
