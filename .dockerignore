@@ -1,0 +1,21 @@
+# Ignore Git directory
+.git
+
+# Ignore local environment files
+.env
+*.env.local
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore node_modules directories from all projects
+# This is the most important part for fixing the current error
+**/node_modules
+
+# Ignore build outputs
+**/dist
+**/build
+
+# Ignore npm logs
+npm-debug.log*

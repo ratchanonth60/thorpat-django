@@ -29,6 +29,9 @@ DOCKER_COMPOSE = docker-compose -f $(COMPOSE_FILE)
 build:
 	$(DOCKER_COMPOSE) build
 
+build-clean:
+	docker-compose build --no-cache
+
 up: build
 	$(DOCKER_COMPOSE) up -d --remove-orphans
 
@@ -45,7 +48,7 @@ stop:
 	$(DOCKER_COMPOSE) stop
 
 logs:
-	$(DOCKER_COMPOSE) logs -f
+	$(DOCKER_COMPOSE) logs -f $(TARGET)
 
 logs-web:
 	$(DOCKER_COMPOSE) logs -f django

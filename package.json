@@ -1,0 +1,22 @@
+{
+  "name": "thorpat-project",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend/*"
+  ],
+  "dependencies": {
+    "axios": "^1.10.0",
+    "react-router-dom": "^7.6.3"
+  },
+  "devDependencies": {
+    "@react-native-community/eslint-config": "^3.2.0",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.31.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-native": "^5.0.0",
+    "postcss": "^8.5.6",
+    "prettier": "^3.6.2",
+    "tailwindcss": "^4.1.11"
+  }
+}

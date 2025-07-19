@@ -117,58 +117,178 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
+INSTALLED_APPS = APPS_BASE + APPS + APPS_THIRD_PARTY + [
+    'drf_yasg',
+]
+
+
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+ROOT_URLCONF = "thorpat.urls"
+
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = "thorpat.wsgi.application"
+
+# Password validation
+# https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+]
+
+
+# Internationalization
+# https://docs.djangoproject.com/en/3.2/topics/i18n/
+
+LANGUAGE_CODE = "en-us"
+
+TIME_ZONE = "UTC"
+
+USE_I18N = True
+
+USE_L10N = True
+
+USE_TZ = True
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/3.2/howto/static-files/
+
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [
+    BASE_DIR / "static",  # If your static folder is at src/static/
+]
+# Default primary key field type
+# https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
-        "thorpat.api.renderers.CustomAPIRenderer",
-        # 'rest_framework.renderers.BrowsableAPIRenderer', # ถ้ายังต้องการใช้ Browsable API
+        "rest_framework.renderers.JSONRenderer",
+        "rest_framework.renderers.BrowsableAPIRenderer",
     ],
-    "EXCEPTION_HANDLER": "thorpat.api.exception_handler.custom_exception_handler",
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DEFAULT_AUTHENTICATION_CLASSES": ("thorpat.api.authentication.Authentication",),
-    "DEFAULT_FILTER_BACKENDS": [
-        "django_filters.rest_framework.DjangoFilterBackend",
-        # You can optionally add DRF's OrderingFilter here if you want it by default for all views
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
     ],
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 10,
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.URLPathVersioning',
+    'ALLOWED_VERSIONS': ('v1',),
+    'DEFAULT_VERSION': 'v1',
+    'VERSION_PARAM': 'version',
 }
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
-    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
-    "SLIDING_TOKEN_LIFETIME": timedelta(days=30),
-    "SLIDING_TOKEN_REFRESH_LIFETIME_LATE_USER": timedelta(days=1),
-    "SLIDING_TOKEN_LIFETIME_LATE_USER": timedelta(days=30),
-    "TOKEN_OBTAIN_SERIALIZER": "thorpat.api.v1.auth.serializers.MyTokenObtainPairSerializer",
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
 
-SPECTACULAR_SETTINGS = {
-    "TITLE": "Your Project API",
-    "DESCRIPTION": "Your project description",
-    "VERSION": "1.0.0",
-    "SERVE_INCLUDE_SCHEMA": False,
-    # "AUTHENTICATION_CLASSES": ("thorpat.api.authentication.Authentication",),
-    "SWAGGER_UI_SETTINGS": {
-        "persistAuthorization": True,
-    },
-    # Explicitly map your custom JWT Authentication to the SimpleJWTScheme
-    # This is often more reliable than relying on SPECTACULAR_SETTINGS['AUTHENTICATION_CLASSES'] alone
-    # for custom subclasses.
-    "APPEND_COMPONENTS": {
-        "securitySchemes": {
-            "jwtAuth": {  # You can name this security scheme
-                "type": "http",
-                "scheme": "bearer",
-                "bearerFormat": "JWT",
-            }
+SWAGGER_SETTINGS = {
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
         }
-    },
-    "SECURITY": [{"jwtAuth": []}],
-    "AUTHENTICATION_CLASSES": [  # Ensure this is a list or tuple
-        "thorpat.api.authentication.Authentication",
-    ],
+    }
 }
+EMAIL_BACKEND = os.environ.get(
+    "DJANGO_EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"
+)  # For development
+EMAIL_HOST = os.environ.get("MAIL_HOST", "localhost")
+EMAIL_PORT = int(os.environ.get("MAIL_PORT", 25))
+EMAIL_USE_TLS = os.environ.get("MAIL_STARTTLS", 1)
+EMAIL_HOST_USER = os.environ.get("MAIL_USERNAME", "")
+EMAIL_HOST_PASSWORD = os.environ.get("MAIL_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.environ.get("MAIL_FROM", "webmaster@localhost")
+
+SITE_BASE_URL = os.environ.get("DJANGO_SITE_BASE_URL", "http://localhost:8000")
+FRONTEND_URL = os.environ.get(
+    "FRONTEND_URL", "http://localhost:8000"
+)  # Default fallback
+
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379/0")
+CELERY_RESULT_BACKEND = os.environ.get(
+    "CELERY_RESULT_BACKEND", "redis://redis:6379/0"
+)  # ถ้าต้องการเก็บผลลัพธ์ task
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE  # ใช้ TIME_ZONE ของ Django
+CELERY_TASK_TRACK_STARTED = True
+CACHEOPS_REDIS = os.environ.get("CELERY_RESULT_BACKEND", "redis://redis:6379/0")
+
+CACHEOPS_DEFAULTS = {"timeout": 60 * 60}
+CACHEOPS = {
+    "auth.user": {"ops": "get", "timeout": 60 * 15},
+    "auth.*": {"ops": ("fetch", "get")},
+    "auth.permission": {"ops": "all"},
+    "*.*": {},
+}
+SITE_ID = 1
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APP": {
+            "client_id": os.environ.get("CLIENT_ID"),
+            "secret": os.environ.get("CLIENT_SECRET"),
+        },
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+        "VERIFIED_EMAIL": True,
+        "OAUTH_PKCE_ENABLED": True,
+        "FETCH_USERINFO": True,
+    },
+}
+
+SOCIALACCOUNT_LOGIN_ON_GET = True
+
+LOGIN_REDIRECT_URL = reverse_lazy("dashboard:user_info")
+LOGIN_URL = "account_login"
+ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True  # (Default is True, good to be explicit)
+ACCOUNT_LOGOUT_REDIRECT_URL = reverse_lazy("home")
+
 EMAIL_BACKEND = os.environ.get(
     "DJANGO_EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"
 )  # For development

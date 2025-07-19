@@ -174,3 +174,5 @@ cython_debug/
 .pypirc
 
 src/mediafiles/*
+
+node_modules/*

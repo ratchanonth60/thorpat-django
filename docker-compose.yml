@@ -16,8 +16,22 @@ services:
     env_file:
       - .env
     volumes:
-      - ./src:/app/src
+      - ./backend:/app/src
     working_dir: /app/src
+  web:
+    build:
+      context: .
+      dockerfile: frontend/web/Dockerfile
+    container_name: thorpat_web_dev
+    working_dir: /app/frontend/web 
+    command: npm run dev -- --host
+    volumes:
+      - ./frontend:/app/frontend
+      - ./package.json:/app/package.json
+      - /app/frontend/web/node_modules
+
+    ports:
+      - "5173:5173"
   db:
     image: postgres
     restart: always
@@ -43,7 +57,7 @@ services:
     restart: always
     command: python -m celery -A thorpat worker -l info
     volumes:
-      - ./src:/app/src
+      - ./backend:/app/src
     working_dir: /app/src
     env_file:
       - .env
